@@ -30,8 +30,7 @@ jobs:
         # uses: shadowmoose/GHA-LoC-Badge@8c8191e02ebe2e4b4764f4711228bddcaeb88f19
         uses: shadowmoose/GHA-LoC-Badge@1.0.0
         with:
-          directory: "./" # optional, default is ./
-          patterns: "**.java" # optional, default is **
+          patterns: "*.java" # optional, default is **
           debug: true
       - name: Run a one-line script
         run: echo Hello, world!
