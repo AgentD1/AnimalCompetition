@@ -32,7 +32,7 @@ jobs:
         id: badge
         with:
           badge: .github/cloc.svg
-          patterns: "*.java" # optional, default is **
+          patterns: '**/*.java' # optional, default is **
           debug: true
       - name: Run a one-line script
         run: echo Hello, world!
