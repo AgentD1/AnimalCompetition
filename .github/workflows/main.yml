@@ -42,3 +42,9 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+          
+      - name: Commit Badge
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update Lines of Code badge - ${{ steps.badge.outputs.total_lines }}
+          push_options: '--force'
