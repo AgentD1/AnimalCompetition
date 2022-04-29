@@ -1,6 +1,6 @@
 package tech.jaboc.animalcompetition.animal;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.*;
 
 /**
  * A version of Modifier that uses reflection and a string fieldName instead of lambdas like SimpleModifier.
@@ -13,12 +13,21 @@ public class ReflectiveModifier extends Modifier {
 	double value;
 	boolean multiplier;
 
-	Class<? extends AnimalModule> module = null;
+	boolean strict, autoAdd;
+	
+	Class<? extends AnimalModule> module;
 
-	public ReflectiveModifier(String fieldName, double value, boolean multiplier) {
+	public ReflectiveModifier(String fieldName, double value, boolean multiplier, boolean strict, boolean autoAdd) {
 		this.fieldName = fieldName;
 		this.multiplier = multiplier;
 		this.value = value;
+		
+		this.strict = strict;
+		this.autoAdd = autoAdd;
+		
+		if(strict && autoAdd) {
+			throw new IllegalArgumentException("Strict and AutoAdd can't both be null!");
+		}
 
 		String requestedModuleName;
 
@@ -30,14 +39,13 @@ public class ReflectiveModifier extends Modifier {
 
 		Class<? extends AnimalModule> requestedModule = AnimalModule.classes.get(requestedModuleName);
 
-
 		if(requestedModule == null) {
 			throw new NullPointerException("Requested module is null! (Requested module = " + requestedModuleName + ")");
 		}
 
 		String requestedField = fieldName.substring(fieldName.indexOf('.') + 1);
 
-		for(Field field : requestedModule.getDeclaredFields()) {
+		for(Field field : requestedModule.getFields()) {
 			if(field.isAnnotationPresent(AnimalComponent.class)) {
 				AnimalComponent annotation = field.getAnnotation(AnimalComponent.class);
 				if(annotation.name().equals(requestedField) && annotation.multiplier() == multiplier) {
@@ -54,10 +62,27 @@ public class ReflectiveModifier extends Modifier {
 
 		module = requestedModule;
 	}
-
+	
+	public ReflectiveModifier(String fieldName, double value, boolean multiplier) {
+		this(fieldName, value, multiplier, true, false);
+	}
+	
 	@Override
 	public void add(Animal animal) {
 		AnimalModule myModule = animal.getModuleOfType(module);
+		if(myModule == null) {
+			if(strict) {
+				throw new NullPointerException("Module " + module.getName() + " not found on animal " + animal + "!");
+			} else if(autoAdd) {
+				try {
+					//noinspection deprecation
+					myModule = module.newInstance();
+					animal.addModule(myModule);
+				} catch (InstantiationException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		try {
 			if(multiplier) {
 				modifyField.set(myModule, (double)modifyField.get(myModule) * value);

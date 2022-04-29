@@ -1,5 +1,7 @@
 package tech.jaboc.animalcompetition.animal;
 
+import org.jetbrains.annotations.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +16,7 @@ public class Animal {
 	public List<Trait> getTraits() {
 		return Collections.unmodifiableList(traits);
 	}
-
+	
 	public void addTrait(Trait trait) {
 		traits.add(trait);
 		for(Modifier mod : trait.modifiers) {
@@ -31,9 +33,11 @@ public class Animal {
 	}
 
 	//region Module Management
+	
+	@Contract(pure = true)
 	public <T extends AnimalModule> T getModuleOfType(Class<T> clazz) {
 		for (AnimalModule module : modules) {
-			if (module.getClass().isAssignableFrom(clazz)) {
+			if (clazz.isAssignableFrom(module.getClass())) {
 				//noinspection unchecked
 				return (T) module;
 			}
@@ -41,7 +45,8 @@ public class Animal {
 
 		return null;
 	}
-
+	
+	@Contract(pure = true)
 	public <T extends AnimalModule> List<T> getModulesOfType(Class<T> clazz) {
 		List<T> matches = new ArrayList<>();
 
@@ -54,7 +59,8 @@ public class Animal {
 
 		return matches;
 	}
-
+	
+	@Contract(pure = true)
 	public boolean hasModuleOfType(Class<? extends AnimalModule> clazz) {
 		for (AnimalModule module : modules) {
 			if (module.getClass().isAssignableFrom(clazz)) {

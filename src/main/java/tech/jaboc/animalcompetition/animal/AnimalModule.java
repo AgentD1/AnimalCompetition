@@ -9,7 +9,7 @@ public abstract class AnimalModule {
 	public static void registerModule(Class<? extends AnimalModule> clazz) {
 		classes.put(clazz.getSimpleName(), clazz);
 	}
-
+	
 	public void addModule(Animal animal) {
 		animal.addModule(this);
 	}
