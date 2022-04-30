@@ -1,19 +1,29 @@
 package tech.jaboc.animalcompetition;
 
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import tech.jaboc.animalcompetition.animal.*;
+import tech.jaboc.animalcompetition.environment.*;
 
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class Main {
-	public static void main(String[] args) throws URISyntaxException {
-		new LandMovementModule();
+	public static void main(String[] args) throws URISyntaxException, IOException {
+		// Currently, the main method is just for testing.
+		
+		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
+		
+		ObjectMapper om = new ObjectMapper();
+		
+		Environment.JsonEnvironmentalFactorList loadedFactorList = om.readValue(new File("src/main/resources/environmentalFactors.json"), Environment.JsonEnvironmentalFactorList.class);
+		
+		List<Environment> generatedEnvironments = Stream.generate(() -> Environment.generateEnvironment(loadedFactorList)).limit(100).toList();
+		
+		System.out.println(om.writeValueAsString(generatedEnvironments));
 		
 		Animal animal = new Animal();
 		BaseModule module = new BaseModule();
@@ -49,8 +59,6 @@ public class Main {
 		
 		System.out.println(animal.getModuleOfType(MovementModule.class).baseSpeed);
 		System.out.println(animal2.getModuleOfType(MovementModule.class).baseSpeed);
-		
-		ObjectMapper om = new ObjectMapper();
 		
 		Path filePath = Paths.get("src/main/resources/animals.json");
 		File file = filePath.toFile();

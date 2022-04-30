@@ -1,0 +1,79 @@
+[
+  {
+    "name": null,
+    "species": null,
+    "modules": [
+      "BaseModule",
+      "LandMovementModule"
+    ],
+    "traits": [
+      {
+        "name": "MyTrait",
+        "modifiers": [
+          {
+            "fieldName": "BaseModule.health",
+            "value": 1.1,
+            "multiplier": true,
+            "strict": true,
+            "autoAdd": false
+          },
+          {
+            "fieldName": "damage",
+            "value": 100.0,
+            "multiplier": false,
+            "strict": true,
+            "autoAdd": false
+          }
+        ]
+      },
+      {
+        "name": "MyTrait",
+        "modifiers": [
+          {
+            "fieldName": "LandMovementModule.speed",
+            "value": 1.1,
+            "multiplier": true,
+            "strict": false,
+            "autoAdd": true
+          },
+          {
+            "fieldName": "LandMovementModule.speed",
+            "value": 100.0,
+            "multiplier": false,
+            "strict": false,
+            "autoAdd": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": null,
+    "species": null,
+    "modules": [
+      "BaseModule",
+      "AirMovementModule"
+    ],
+    "traits": [
+      {
+        "name": "MyTrait",
+        "modifiers": [
+          {
+            "fieldName": "AirMovementModule.speed",
+            "value": 1.2,
+            "multiplier": true,
+            "strict": false,
+            "autoAdd": true
+          },
+          {
+            "fieldName": "AirMovementModule.speed",
+            "value": 200.0,
+            "multiplier": false,
+            "strict": false,
+            "autoAdd": true
+          }
+        ]
+      }
+    ]
+  }
+]

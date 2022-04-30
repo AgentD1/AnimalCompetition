@@ -1,0 +1,493 @@
+{
+  "times": [
+    {
+      "name": "Day",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Full Moon",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Twilight",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Sunny",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Full Moon",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Night",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Sunny",
+          "multiplier": 0.0
+        }
+      ]
+    }
+  ],
+  "terrains": [
+    {
+      "name": "Mountain",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Freezing",
+          "multiplier": 3.0
+        },
+        {
+          "factorName": "Cold",
+          "multiplier": 1.5
+        },
+        {
+          "factorName": "Neutral",
+          "multiplier": 0.25
+        },
+        {
+          "factorName": "Warm",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Hot",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Hills",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": []
+    },
+    {
+      "name": "Grassland",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Freezing",
+          "multiplier": 0.5
+        },
+        {
+          "factorName": "Cold",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Neutral",
+          "multiplier": 1.5
+        },
+        {
+          "factorName": "Warm",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Hot",
+          "multiplier": 0.5
+        }
+      ]
+    },
+    {
+      "name": "Desert",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Freezing",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Cold",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Neutral",
+          "multiplier": 0.1
+        },
+        {
+          "factorName": "Warm",
+          "multiplier": 1.0
+        },
+        {
+          "factorName": "Hot",
+          "multiplier": 1.5
+        }
+      ]
+    }
+  ],
+  "temperatures": [
+    {
+      "name": "Freezing",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.5
+        },
+        {
+          "factorName": "Snowy",
+          "multiplier": 2.0
+        },
+        {
+          "factorName": "Snowstorm",
+          "multiplier": 2.0
+        },
+        {
+          "factorName": "Rainy",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Sunny",
+          "multiplier": 0.2
+        }
+      ]
+    },
+    {
+      "name": "Cold",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.2
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Snowy",
+          "multiplier": 1.5
+        },
+        {
+          "factorName": "Snowstorm",
+          "multiplier": 1.5
+        },
+        {
+          "factorName": "Rainy",
+          "multiplier": 0.2
+        },
+        {
+          "factorName": "Sunny",
+          "multiplier": 0.5
+        }
+      ]
+    },
+    {
+      "name": "Neutral",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.5
+        },
+        {
+          "factorName": "Snowy",
+          "multiplier": 0.2
+        },
+        {
+          "factorName": "Snowstorm",
+          "multiplier": 0.1
+        },
+        {
+          "factorName": "Rainy",
+          "multiplier": 1.5
+        }
+      ]
+    },
+    {
+      "name": "Warm",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Snowy",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Snowstorm",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 1.2
+        },
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.8
+        }
+      ]
+    },
+    {
+      "name": "Hot",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Snowy",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Snowstorm",
+          "multiplier": 0.0
+        },
+        {
+          "factorName": "Rainy",
+          "multiplier": 0.3
+        },
+        {
+          "factorName": "Jungle",
+          "multiplier": 2.0
+        },
+        {
+          "factorName": "Sunny",
+          "multiplier": 2.0
+        },
+        {
+          "factorName": "Full Moon",
+          "multiplier": 2.0
+        }
+      ]
+    }
+  ],
+  "weathers": [
+    {
+      "name": "Sunny",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.8
+        }
+      ]
+    },
+    {
+      "name": "Full Moon",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.8
+        }
+      ]
+    },
+    {
+      "name": "Rainy",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 1.5
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 1.2
+        }
+      ]
+    },
+    {
+      "name": "Foggy",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Windy",
+          "multiplier": 0.8
+        },
+        {
+          "factorName": "Sheltered",
+          "multiplier": 1.2
+        }
+      ]
+    },
+    {
+      "name": "Thunderstorm",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Windy",
+          "multiplier": 2.0
+        }
+      ]
+    },
+    {
+      "name": "Snowy",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Windy",
+          "multiplier": 1.2
+        },
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.5
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.7
+        }
+      ]
+    },
+    {
+      "name": "Snowstorm",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Windy",
+          "multiplier": 2.0
+        },
+        {
+          "factorName": "Sheltered",
+          "multiplier": 0.5
+        },
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.2
+        },
+        {
+          "factorName": "Forested",
+          "multiplier": 0.4
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Forested",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Jungle",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Jungle",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Forested",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Large Rocks",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": []
+    },
+    {
+      "name": "Caves",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": []
+    },
+    {
+      "name": "Barren",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Lush",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Lush",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Barren",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Windy",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Sheltered",
+          "multiplier": 0.0
+        }
+      ]
+    },
+    {
+      "name": "Sheltered",
+      "description": "No Description Provided",
+      "modifiers": [],
+      "defaultProbability": -1.0,
+      "factorModifiers": [
+        {
+          "factorName": "Windy",
+          "multiplier": 0.0
+        }
+      ]
+    }
+  ]
+}
