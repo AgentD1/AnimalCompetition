@@ -1,4 +1,4 @@
-package tech.jaboc.animalcompetition;
+package tech.jaboc.animalcompetition.environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import tech.jaboc.animalcompetition.animal.Modifier;
