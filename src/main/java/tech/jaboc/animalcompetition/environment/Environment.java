@@ -1,15 +1,18 @@
 package tech.jaboc.animalcompetition.environment;
 
+import com.fasterxml.jackson.annotation.*;
+
 import java.util.*;
 import java.util.stream.*;
 
 public class Environment {
-	EnvironmentalFactor timeFactor;
-	EnvironmentalFactor terrainFactor;
-	EnvironmentalFactor temperatureFactor;
-	EnvironmentalFactor weatherFactor;
-	List<EnvironmentalFactor> features;
+	public EnvironmentalFactor timeFactor;
+	public EnvironmentalFactor terrainFactor;
+	public EnvironmentalFactor temperatureFactor;
+	public EnvironmentalFactor weatherFactor;
+	public List<EnvironmentalFactor> features;
 	
+	@JsonIgnore
 	public List<EnvironmentalFactor> getAllEnvironmentalFactors() {
 		List<EnvironmentalFactor> returnValue = new ArrayList<>(features);
 		returnValue.add(timeFactor);
@@ -19,7 +22,8 @@ public class Environment {
 		return returnValue;
 	}
 	
-	public Environment(EnvironmentalFactor timeFactor, EnvironmentalFactor terrainFactor, EnvironmentalFactor temperatureFactor, EnvironmentalFactor weatherFactor, List<EnvironmentalFactor> features) {
+	@JsonCreator
+	public Environment(@JsonProperty("timeFactor") EnvironmentalFactor timeFactor, @JsonProperty("terrainFactor") EnvironmentalFactor terrainFactor, @JsonProperty("temperatureFactor") EnvironmentalFactor temperatureFactor, @JsonProperty("weatherFactor") EnvironmentalFactor weatherFactor, @JsonProperty("features") List<EnvironmentalFactor> features) {
 		this.timeFactor = timeFactor;
 		this.weatherFactor = weatherFactor;
 		this.temperatureFactor = temperatureFactor;
