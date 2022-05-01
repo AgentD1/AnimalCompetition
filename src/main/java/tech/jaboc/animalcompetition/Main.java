@@ -1,80 +1,60 @@
 package tech.jaboc.animalcompetition;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import tech.jaboc.animalcompetition.animal.*;
-import tech.jaboc.animalcompetition.environment.*;
 
 import java.io.*;
 import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class Main {
 	public static void main(String[] args) throws URISyntaxException, IOException {
-		// Currently, the main method is just for testing.
-		
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		
-		ObjectMapper om = new ObjectMapper();
+		Scanner in = new Scanner(System.in);
 		
-		Environment.JsonEnvironmentalFactorList loadedFactorList = om.readValue(new File("src/main/resources/environmentalFactors.json"), Environment.JsonEnvironmentalFactorList.class);
+		System.out.println("Welcome to the Friendly Fighting Farena. Do you want to pick a (p)reset animal or (d)esign your own?");
+		boolean usePreset = UserInputUtils.getUserCharSelection(in, "pd", "Enter 'p' for preset or 'd' for design") == 'p';
 		
-		List<Environment> generatedEnvironments = Stream.generate(() -> Environment.generateEnvironment(loadedFactorList)).limit(100).toList();
-		
-		System.out.println(om.writeValueAsString(generatedEnvironments));
-		
-		Animal animal = new Animal();
-		BaseModule module = new BaseModule();
-		animal.addModule(module);
-		
-		Trait myTrait = new Trait("MyTrait", new Modifier[] {
-//				new SimpleModifier((x, y) -> x.applyToModuleIfNotNull(BaseModule.class, baseModule -> baseModule.baseHealth = y),
-//						x -> x.getFromModuleIfNotNull(BaseModule.class, baseModule -> baseModule.baseHealth),
-//						50, false),
-				new ReflectiveModifier("BaseModule.health", 1.1, true),
-				new ReflectiveModifier("damage", 100, false)
-		});
-		
-		animal.addTrait(myTrait);
-		
-		BaseModule module1 = animal.getModuleOfType(BaseModule.class);
-		System.out.printf("Health: %f (+%f%%), Damage: %f (+%f%%)\n", module1.baseHealth, module1.healthMultiplier, module1.baseDamage, module1.damageMultiplier);
-		
-		Animal animal2 = new Animal();
-		animal2.addModule(new BaseModule());
-		
-		Trait landMovementTrait = new Trait("MyTrait", new Modifier[] {
-				new ReflectiveModifier("LandMovementModule.speed", 1.1, true, false, true),
-				new ReflectiveModifier("LandMovementModule.speed", 100, false, false, true)
-		});
-		Trait airMovementTrait = new Trait("MyTrait", new Modifier[] {
-				new ReflectiveModifier("AirMovementModule.speed", 1.2, true, false, true),
-				new ReflectiveModifier("AirMovementModule.speed", 200, false, false, true)
-		});
-		
-		animal.addTrait(landMovementTrait);
-		animal2.addTrait(airMovementTrait);
-		
-		System.out.println(animal.getModuleOfType(MovementModule.class).baseSpeed);
-		System.out.println(animal2.getModuleOfType(MovementModule.class).baseSpeed);
-		
-		Path filePath = Paths.get("src/main/resources/animals.json");
-		File file = filePath.toFile();
-		
-		try {
-			om.writerWithDefaultPrettyPrinter().writeValue(file, new Animal[] { animal, animal2 });
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		int preset = 0;
+		if (usePreset) {
+			System.out.println("Do you want to choose a (l)ion, (e)agle, or (c)heetah?");
+			preset = "lec".indexOf(UserInputUtils.getUserCharSelection(in, "lec", "Enter 'l' for lion, 'e' for eagle, or 'c' for cheetah"));
 		}
 		
-		try {
-			Animal[] parsedAnimals = om.readValue(file, Animal[].class);
-			System.out.println(parsedAnimals[0].getModuleOfType(MovementModule.class).getSpeed());
-			System.out.println(parsedAnimals[1].getModuleOfType(MovementModule.class).getSpeed());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		List<Trait> availableBaseTraits = List.of(
+				new Trait("Lion Body", new ReflectiveModifier[] {
+						new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
+						new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
+						new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
+				}),
+				new Trait("Eagle Body", new ReflectiveModifier[] {
+						new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
+						new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
+						new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
+						new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
+				}),
+				new Trait("Cheetah Body", new ReflectiveModifier[] {
+						new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
+						new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
+						new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
+				})
+		);
+		
+		Animal userAnimal = new Animal();
+		
+		if (usePreset) {
+			userAnimal.addTrait(availableBaseTraits.get(preset));
+		} else {
+			System.out.println("Choose a body to build from:");
+			int i = 0;
+			for (Trait t : availableBaseTraits) {
+				System.out.println(i++ + ": " + t.name + " (" + String.join(", ", (String[]) Arrays.stream(t.modifiers).map(Object::toString).toArray()));
+			}
+			int choice = UserInputUtils.getUserIntSelection(in, 1, 3) - 1;
+			userAnimal.addTrait(availableBaseTraits.get(choice));
 		}
+		
+		
 	}
 }

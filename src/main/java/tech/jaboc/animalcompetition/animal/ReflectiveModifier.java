@@ -114,4 +114,9 @@ public class ReflectiveModifier extends Modifier {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s %s %f.2%s", fieldName, (value >= 0 ? "+" : "-"), Math.abs(value), multiplier ? "%" : "");
+	}
 }
