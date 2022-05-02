@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.annotation.*;
 import org.jetbrains.annotations.*;
 import tech.jaboc.animalcompetition.animal.json.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -39,6 +38,53 @@ public class Animal {
 		traits.remove(trait);
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append(String.format("Animal of species %s, named %s.\n", species, name));
+		b.append("Stats:\n");
+		for (AnimalModule m : modules) {
+			b.append(m.getClass().getSimpleName());
+			b.append('\n');
+			
+			try {
+				HashMap<String, Double> other = new HashMap<>();
+				for (Field field : m.getClass().getFields()) {
+					if (field.isAnnotationPresent(AnimalComponent.class)) {
+						AnimalComponent c = field.getAnnotation(AnimalComponent.class);
+						String name = c.name();
+						double value = field.getDouble(m);
+						if (c.multiplier()) {
+							if (other.containsKey(c.name())) { // Use format: name: value xMultiplier% = finalValue
+								// TODO: change this to just display the whole number later
+								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, other.get(name), value * 100, other.get(name) * value));
+							} else {
+								other.put(name, value);
+							}
+						} else {
+							if (other.containsKey(c.name())) {
+								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, value, other.get(name) * 100, other.get(name) * value));
+							} else {
+								other.put(name, value);
+							}
+						}
+					}
+				}
+			} catch (IllegalAccessException e) { // This will not happen, and if it does, I need to know about it
+				throw new RuntimeException(e);
+			}
+		}
+		
+		b.append("Traits:\n");
+		for (Trait t : traits) {
+			b.append(t.name);
+			b.append('\n');
+		}
+		
+		b.deleteCharAt(b.length() - 1);
+		
+		return b.toString();
+	}
 	
 	//region Module Management
 	

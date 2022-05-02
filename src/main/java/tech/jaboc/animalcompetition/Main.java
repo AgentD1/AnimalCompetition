@@ -10,10 +10,11 @@ public class Main {
 	public static void main(String[] args) throws URISyntaxException, IOException {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
+		new BaseModule();
 		
 		Scanner in = new Scanner(System.in);
 		
-		System.out.println("Welcome to the Friendly Fighting Farena. Do you want to pick a (p)reset animal or (d)esign your own?");
+		System.out.println("Welcome to the Friendly Fighting Arena (FFA for short). Do you want to pick a (p)reset animal or (d)esign your own?");
 		boolean usePreset = UserInputUtils.getUserCharSelection(in, "pd", "Enter 'p' for preset or 'd' for design") == 'p';
 		
 		int preset = 0;
@@ -49,7 +50,7 @@ public class Main {
 			System.out.println("Choose a body to build from:");
 			int i = 0;
 			for (Trait t : availableBaseTraits) {
-				System.out.println(i++ + ": " + t.name + " (" + String.join(", ", (String[]) Arrays.stream(t.modifiers).map(Object::toString).toArray()));
+				System.out.println(++i + ": " + t.name + " (" + String.join(", ", Arrays.stream(t.modifiers).map(Object::toString).toList().toArray(new String[0])) + ")");
 			}
 			int choice = UserInputUtils.getUserIntSelection(in, 1, 3) - 1;
 			userAnimal.addTrait(availableBaseTraits.get(choice));
@@ -84,14 +85,27 @@ public class Main {
 			System.out.println("It's time to choose your extra traits! Here are the options (enter -1 to stop adding traits):");
 			int i = 0;
 			for (Trait t : otherTraits) {
-				System.out.println(i++ + ": " + t.name + " (" + String.join(", ", (String[]) Arrays.stream(t.modifiers).map(Object::toString).toArray()));
+				System.out.println(i++ + ": " + t.name + " (" + String.join(", ", Arrays.stream(t.modifiers).map(Object::toString).toList().toArray(new String[0])) + ")");
 			}
-			while(true) {
-				int choice = UserInputUtils.getUserIntSelection(in, -1, availableBaseTraits.size() - 1);
-				if(choice == -1) break;
-				userAnimal.addTrait(availableBaseTraits.get(choice));
+			while (true) {
+				int choice = UserInputUtils.getUserIntSelection(in, -1, otherTraits.size() - 1);
+				if (choice == -1) break;
+				userAnimal.addTrait(otherTraits.get(choice));
+				System.out.println("Added trait " + otherTraits.get(choice).name + "!");
 			}
 		}
 		
+		if (usePreset) {
+			userAnimal.species = new String[] { "Lion", "Eagle", "Cheetah" }[preset];
+		} else {
+			System.out.println("What species is this animal?");
+			userAnimal.species = in.nextLine();
+		}
+		
+		System.out.println("For the final touches, please give your animal a name!");
+		userAnimal.name = in.nextLine();
+		
+		System.out.println("Your animal is complete!");
+		System.out.println(userAnimal);
 	}
 }
