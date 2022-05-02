@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import tech.jaboc.animalcompetition.animal.json.ReflectiveModifierDeserializer;
 
 import java.lang.reflect.*;
+import java.util.List;
 
 /**
  * A version of Modifier that uses reflection and a string fieldName instead of lambdas like SimpleModifier.
@@ -77,28 +78,32 @@ public class ReflectiveModifier extends Modifier {
 	
 	@Override
 	public void add(Animal animal) {
-		AnimalModule myModule = animal.getModuleOfType(module);
-		if (myModule == null) {
+		List<? extends AnimalModule> myModules = animal.getModulesOfType(module);
+		if (myModules.size() == 0) {
 			if (strict) {
 				throw new NullPointerException("Module " + module.getName() + " not found on animal " + animal + "!");
 			} else if (autoAdd) {
 				try {
 					//noinspection deprecation
-					myModule = module.newInstance();
+					AnimalModule myModule = module.newInstance();
 					animal.addModule(myModule);
+					add(animal); // Can't add to list declared with wildcards, so just re-call the function and return
+					return;
 				} catch (InstantiationException | IllegalAccessException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		try {
-			if (multiplier) {
-				modifyField.set(myModule, (double) modifyField.get(myModule) * value);
-			} else {
-				modifyField.set(myModule, (double) modifyField.get(myModule) + value);
+		for (var myModule : myModules) { // ? extends AnimalModule
+			try {
+				if (multiplier) {
+					modifyField.set(myModule, (double) modifyField.get(myModule) * value);
+				} else {
+					modifyField.set(myModule, (double) modifyField.get(myModule) + value);
+				}
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e); // This will never happen randomly, and if it does, it means that the variable in the module isn't public.
 			}
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
 		}
 	}
 	
@@ -117,6 +122,6 @@ public class ReflectiveModifier extends Modifier {
 	
 	@Override
 	public String toString() {
-		return String.format("%s %s %f.2%s", fieldName, (value >= 0 ? "+" : "-"), Math.abs(value), multiplier ? "%" : "");
+		return String.format("%s %s %.2f%s", fieldName, (value >= 0 ? "+" : "-"), Math.abs(value * (multiplier ? 100.0 : 1.0)), multiplier ? "%" : "");
 	}
 }
