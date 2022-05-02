@@ -20,4 +20,8 @@ public abstract class MovementModule extends AnimalModule {
 		
 		return fastest.getSpeed();
 	}
+	
+	static {
+		AnimalModule.registerModule(MovementModule.class);
+	}
 }
