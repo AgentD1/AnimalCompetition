@@ -55,6 +55,43 @@ public class Main {
 			userAnimal.addTrait(availableBaseTraits.get(choice));
 		}
 		
+		List<Trait> otherTraits = List.of(
+				new Trait("Fast", new ReflectiveModifier[] {
+						new ReflectiveModifier("MovementModule.speed", 1.5, true, false, false),
+				}),
+				new Trait("Slow", new ReflectiveModifier[] {
+						new ReflectiveModifier("MovementModule.speed", 0.666667, true, false, false),
+				}),
+				new Trait("Violent", new ReflectiveModifier[] {
+						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
+				}),
+				new Trait("Glass Cannon", new ReflectiveModifier[] {
+						new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
+						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
+				}),
+				new Trait("Large Feet", new ReflectiveModifier[] {
+						new ReflectiveModifier("LandMovementModule.speed", 1.5, true, false, true),
+				})
+		);
+		
+		if(usePreset) {
+			switch (preset) {
+				case 0 -> userAnimal.addTrait(otherTraits.get(2));
+				case 1 -> userAnimal.addTrait(otherTraits.get(4));
+				case 2 -> userAnimal.addTrait(otherTraits.get(1));
+			}
+		} else {
+			System.out.println("It's time to choose your extra traits! Here are the options (enter -1 to stop adding traits):");
+			int i = 0;
+			for (Trait t : otherTraits) {
+				System.out.println(i++ + ": " + t.name + " (" + String.join(", ", (String[]) Arrays.stream(t.modifiers).map(Object::toString).toArray()));
+			}
+			while(true) {
+				int choice = UserInputUtils.getUserIntSelection(in, -1, availableBaseTraits.size() - 1);
+				if(choice == -1) break;
+				userAnimal.addTrait(availableBaseTraits.get(choice));
+			}
+		}
 		
 	}
 }
