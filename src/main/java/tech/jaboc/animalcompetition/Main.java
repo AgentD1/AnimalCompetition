@@ -2,12 +2,11 @@ package tech.jaboc.animalcompetition;
 
 import tech.jaboc.animalcompetition.animal.*;
 
-import java.io.*;
-import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main {
-	public static void main(String[] args) throws URISyntaxException, IOException {
+	public static void main(String[] args) {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
@@ -107,5 +106,25 @@ public class Main {
 		
 		System.out.println("Your animal is complete!");
 		System.out.println(userAnimal);
+		
+		
+		System.out.println("I'm going to generate an animal as your opponent now.");
+		Trait baseTrait = availableBaseTraits.get((int) (Math.random() * (double)availableBaseTraits.size()));
+		Trait otherTrait = otherTraits.get((int) (Math.random() * (double)otherTraits.size()));
+		
+		Animal opponent = new Animal();
+		opponent.addTrait(baseTrait);
+		opponent.addTrait(otherTrait);
+		
+		Random r = new Random();
+		opponent.name = IntStream.generate(() -> r.nextInt('a', 'z')).limit(20).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+		
+		opponent.species = IntStream.generate(() -> r.nextInt('a', 'z')).limit(20).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+		
+		System.out.println(opponent);
+		
+		System.out.println();
+		
+		System.out.println();
 	}
 }
