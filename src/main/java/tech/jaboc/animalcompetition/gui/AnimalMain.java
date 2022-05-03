@@ -54,9 +54,9 @@ public class AnimalMain extends Application {
 		layout.prefWidthProperty().bind(root.widthProperty());
 		
 		Label label = new Label("Let's create an animal!!");
-		label.setTextAlignment(TextAlignment.RIGHT);
-		label.prefWidthProperty().bind(layout.widthProperty());
 		label.setFont(Font.font(24.0));
+		
+		
 		
 		layout.getChildren().add(label);
 		
