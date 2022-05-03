@@ -1,6 +1,8 @@
 package tech.jaboc.animalcompetition;
 
+import javafx.application.Application;
 import tech.jaboc.animalcompetition.animal.*;
+import tech.jaboc.animalcompetition.gui.AnimalMain;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -75,7 +77,7 @@ public class Main {
 				})
 		);
 		
-		if(usePreset) {
+		if (usePreset) {
 			switch (preset) {
 				case 0 -> userAnimal.addTrait(otherTraits.get(2));
 				case 1 -> userAnimal.addTrait(otherTraits.get(4));
