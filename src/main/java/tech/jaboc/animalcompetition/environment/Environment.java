@@ -104,6 +104,17 @@ public class Environment {
 		throw new RuntimeException("Reached the end of the weighted random without selecting anything (This will never happen)");
 	}
 	
+	@Override
+	public String toString() {
+		return "Environment {" +
+				"time=" + timeFactor +
+				", terrain=" + terrainFactor +
+				", temperature=" + temperatureFactor +
+				", weather=" + weatherFactor +
+				", features=" + features +
+				'}';
+	}
+	
 	public record JsonEnvironmentalFactorList(EnvironmentalFactor[] times, EnvironmentalFactor[] terrains,
 	                                          EnvironmentalFactor[] temperatures, EnvironmentalFactor[] weathers,
 	                                          EnvironmentalFactor[] features) { }

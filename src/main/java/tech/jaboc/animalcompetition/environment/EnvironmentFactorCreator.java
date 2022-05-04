@@ -1,7 +1,7 @@
 package tech.jaboc.animalcompetition.environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import tech.jaboc.animalcompetition.animal.Modifier;
+import tech.jaboc.animalcompetition.animal.*;
 import tech.jaboc.animalcompetition.environment.*;
 
 import java.io.IOException;
@@ -136,14 +136,20 @@ public class EnvironmentFactorCreator {
 		
 		
 		EnvironmentalFactor[] times = new EnvironmentalFactor[] {
-				new EnvironmentalFactor("Day", new Modifier[0], new EnvironmentalFactor.FactorModifier[] {
+				new EnvironmentalFactor("Day", new Modifier[] {
+						new ReflectiveModifier("MovementModule.speed", 1.25, true)
+				}, new EnvironmentalFactor.FactorModifier[] {
 						new EnvironmentalFactor.FactorModifier("Full Moon", 0.0),
 				}),
-				new EnvironmentalFactor("Twilight", new Modifier[0], new EnvironmentalFactor.FactorModifier[] {
+				new EnvironmentalFactor("Twilight", new Modifier[] {
+						new ReflectiveModifier("MovementModule.speed", 1.0, true)
+				}, new EnvironmentalFactor.FactorModifier[] {
 						new EnvironmentalFactor.FactorModifier("Sunny", 0.0),
 						new EnvironmentalFactor.FactorModifier("Full Moon", 0.0),
 				}),
-				new EnvironmentalFactor("Night", new Modifier[0], new EnvironmentalFactor.FactorModifier[] {
+				new EnvironmentalFactor("Night", new Modifier[] {
+						new ReflectiveModifier("MovementModule.speed", 0.75, true)
+				}, new EnvironmentalFactor.FactorModifier[] {
 						new EnvironmentalFactor.FactorModifier("Sunny", 0.0),
 				}),
 		};
