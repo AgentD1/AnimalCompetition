@@ -3,7 +3,15 @@
     {
       "name": "Day",
       "description": "No Description Provided",
-      "modifiers": [],
+      "modifiers": [
+        {
+          "fieldName": "MovementModule.speed",
+          "value": 1.25,
+          "multiplier": true,
+          "strict": true,
+          "autoAdd": false
+        }
+      ],
       "defaultProbability": -1.0,
       "factorModifiers": [
         {
@@ -15,7 +23,15 @@
     {
       "name": "Twilight",
       "description": "No Description Provided",
-      "modifiers": [],
+      "modifiers": [
+        {
+          "fieldName": "MovementModule.speed",
+          "value": 1.0,
+          "multiplier": true,
+          "strict": true,
+          "autoAdd": false
+        }
+      ],
       "defaultProbability": -1.0,
       "factorModifiers": [
         {
@@ -31,7 +47,15 @@
     {
       "name": "Night",
       "description": "No Description Provided",
-      "modifiers": [],
+      "modifiers": [
+        {
+          "fieldName": "MovementModule.speed",
+          "value": 0.75,
+          "multiplier": true,
+          "strict": true,
+          "autoAdd": false
+        }
+      ],
       "defaultProbability": -1.0,
       "factorModifiers": [
         {
@@ -130,6 +154,14 @@
         {
           "factorName": "Hot",
           "multiplier": 1.5
+        },
+        {
+          "factorName": "Rainy",
+          "multiplier": 0.1
+        },
+        {
+          "factorName": "Thunderstorm",
+          "multiplier": 0.1
         }
       ]
     }
@@ -160,6 +192,10 @@
         {
           "factorName": "Rainy",
           "multiplier": 0.0
+        },
+        {
+          "factorName": "Thunderstorm",
+          "multiplier": 0.1
         },
         {
           "factorName": "Sunny",
@@ -264,6 +300,10 @@
         {
           "factorName": "Rainy",
           "multiplier": 0.3
+        },
+        {
+          "factorName": "Thunderstorm",
+          "multiplier": 0.5
         },
         {
           "factorName": "Jungle",

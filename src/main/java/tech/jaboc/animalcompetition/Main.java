@@ -1,18 +1,27 @@
 package tech.jaboc.animalcompetition;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import tech.jaboc.animalcompetition.animal.*;
+import tech.jaboc.animalcompetition.environment.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
 public class Main {
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
 		new BeakAttackModule();
 		new ClawAttackModule();
 		new BiteAttackModule();
+		
+		EnvironmentFactorCreator.writeEnvironmentalFactors();
+		
+		System.out.println("Loading environments..");
+		Environment.JsonEnvironmentalFactorList factorList = new ObjectMapper().readValue(AssetManager.getResourceStream("environmentalFactors.json"),
+				Environment.JsonEnvironmentalFactorList.class);
 		
 		Scanner in = new Scanner(System.in);
 		
@@ -146,6 +155,14 @@ public class Main {
 		
 		System.out.println(opponent);
 		
+		System.out.println("Generating arena...");
+		Environment arena = Environment.generateEnvironment(factorList);
+		
+		userAnimal.addEnvironment(arena);
+		opponent.addEnvironment(arena);
+		
+		System.out.println(arena);
+		
 		System.out.println();
 		
 		System.out.println();
@@ -155,15 +172,18 @@ public class Main {
 		userAnimal.getModuleOfType(BaseModule.class).fullyHeal();
 		opponent.getModuleOfType(BaseModule.class).fullyHeal();
 		
+		System.out.println(userAnimal);
+		System.out.println(opponent);
+		
 		boolean playerTurn = true;
 		
-		while(userAnimal.getModuleOfType(BaseModule.class).currentHealth > 0 && opponent.getModuleOfType(BaseModule.class).currentHealth > 0) {
+		while (userAnimal.getModuleOfType(BaseModule.class).currentHealth > 0 && opponent.getModuleOfType(BaseModule.class).currentHealth > 0) {
 			Animal aggressor = playerTurn ? userAnimal : opponent;
 			Animal victim = playerTurn ? opponent : userAnimal;
 			List<AttackModule> attacks = aggressor.getModulesOfType(AttackModule.class);
 			attacks = attacks.stream().filter(a -> a.canHitAnimal(victim)).toList();
 			
-			if(attacks.size() == 0) {
+			if (attacks.size() == 0) {
 				System.out.println(aggressor.name + " has no attacks that can hit!");
 				break;
 			}

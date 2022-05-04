@@ -36,5 +36,10 @@ public class EnvironmentalFactor {
 		this.defaultProbability = defaultProbability;
 	}
 	
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 	public record FactorModifier(String factorName, double multiplier) { }
 }

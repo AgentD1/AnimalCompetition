@@ -3,6 +3,7 @@ package tech.jaboc.animalcompetition.animal;
 import com.fasterxml.jackson.databind.annotation.*;
 import org.jetbrains.annotations.*;
 import tech.jaboc.animalcompetition.animal.json.*;
+import tech.jaboc.animalcompetition.environment.*;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -36,6 +37,22 @@ public class Animal {
 			mod.remove(this);
 		}
 		traits.remove(trait);
+	}
+	
+	public void addEnvironment(Environment environment) {
+		for (EnvironmentalFactor f : environment.features) {
+			for (Modifier mod : f.modifiers) {
+				mod.add(this);
+			}
+		}
+	}
+	
+	public void removeEnvironment(Environment environment) {
+		for (EnvironmentalFactor f : environment.features) {
+			for (Modifier mod : f.modifiers) {
+				mod.remove(this);
+			}
+		}
 	}
 	
 	@Override
