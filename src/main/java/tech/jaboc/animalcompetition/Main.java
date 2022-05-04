@@ -169,6 +169,9 @@ public class Main {
 			}
 			
 			AttackModule randomAttack = attacks.get(r.nextInt(0, attacks.size()));
+			
+			System.out.printf("%s used %s!\n", aggressor.name, randomAttack.name);
+			
 			AttackModule.AttackResult attackResult = randomAttack.attackAnimal(victim);
 			
 			if(attackResult.hit()) {
