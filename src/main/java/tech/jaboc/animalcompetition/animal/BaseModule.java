@@ -11,7 +11,16 @@ public class BaseModule extends AnimalModule {
 	@AnimalComponent(name = "damage", multiplier = true)
 	public double damageMultiplier = 1.0;
 
-
+	public double currentHealth;
+	
+	public void fullyHeal() {
+		currentHealth = baseHealth * healthMultiplier;
+	}
+	
+	public void takeDamage(double damage) {
+		currentHealth -= damage;
+	}
+	
 	static {
 		registerModule(BaseModule.class);
 	}

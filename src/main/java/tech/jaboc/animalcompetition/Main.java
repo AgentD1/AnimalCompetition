@@ -6,10 +6,13 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 public class Main {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
+		new BeakAttackModule();
+		new ClawAttackModule();
+		new BiteAttackModule();
 		
 		Scanner in = new Scanner(System.in);
 		
@@ -27,17 +30,35 @@ public class Main {
 						new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
 						new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.accuracy", 0.8, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.damage", 10.0, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.damageRandomRange", 10.0, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.accuracy", 0.8, false, false, true),
 				}),
 				new Trait("Eagle Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
 						new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
 						new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 10.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.accuracy", 0.7, false, false, true),
+						new ReflectiveModifier("BeakAttackModule.damage", 10.0, false, false, true),
+						new ReflectiveModifier("BeakAttackModule.damageRandomRange", 5.0, false, false, true),
+						new ReflectiveModifier("BeakAttackModule.accuracy", 1.1, false, false, true),
 				}),
 				new Trait("Cheetah Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
 						new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
+						new ReflectiveModifier("ClawAttackModule.accuracy", 0.9, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.damage", 10.0, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.damageRandomRange", 10.0, false, false, true),
+						new ReflectiveModifier("BiteAttackModule.accuracy", 0.9, false, false, true),
 				})
 		);
 		
@@ -63,11 +84,13 @@ public class Main {
 						new ReflectiveModifier("MovementModule.speed", 0.666667, true, false, false),
 				}),
 				new Trait("Violent", new ReflectiveModifier[] {
+						new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
 						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
 				}),
 				new Trait("Glass Cannon", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
-						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
+						new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
+						new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
 				}),
 				new Trait("Large Feet", new ReflectiveModifier[] {
 						new ReflectiveModifier("LandMovementModule.speed", 1.5, true, false, true),
@@ -126,5 +149,36 @@ public class Main {
 		System.out.println();
 		
 		System.out.println();
+		
+		System.out.println("Time to fight lol");
+		
+		userAnimal.getModuleOfType(BaseModule.class).fullyHeal();
+		opponent.getModuleOfType(BaseModule.class).fullyHeal();
+		
+		boolean playerTurn = true;
+		
+		while(userAnimal.getModuleOfType(BaseModule.class).currentHealth > 0 && opponent.getModuleOfType(BaseModule.class).currentHealth > 0) {
+			Animal aggressor = playerTurn ? userAnimal : opponent;
+			Animal victim = playerTurn ? opponent : userAnimal;
+			List<AttackModule> attacks = aggressor.getModulesOfType(AttackModule.class);
+			attacks = attacks.stream().filter(a -> a.canHitAnimal(victim)).toList();
+			
+			if(attacks.size() == 0) {
+				System.out.println(aggressor.name + " has no attacks that can hit!");
+				break;
+			}
+			
+			AttackModule randomAttack = attacks.get(r.nextInt(0, attacks.size()));
+			AttackModule.AttackResult attackResult = randomAttack.attackAnimal(victim);
+			
+			if(attackResult.hit()) {
+				System.out.printf(aggressor.name + " hit for %s damage.\n", attackResult.damage());
+			} else {
+				System.out.println(aggressor.name + " missed lol");
+			}
+			
+			playerTurn = !playerTurn;
+			Thread.sleep(100);
+		}
 	}
 }

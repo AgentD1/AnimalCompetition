@@ -145,5 +145,11 @@ public class Animal {
 		return function.apply(module);
 	}
 	
+	public <T extends AnimalModule, R> R getFromModuleIfNotNullElse(Class<T> clazz, Function<T, R> function, R elseResult) {
+		T module = getModuleOfType(clazz);
+		if (module == null) return elseResult;
+		return function.apply(module);
+	}
+	
 	//endregion
 }
