@@ -10,6 +10,7 @@ import javafx.stage.*;
 import tech.jaboc.animalcompetition.animal.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AnimalMain extends Application {
 	public static Properties properties;
@@ -26,6 +27,14 @@ public class AnimalMain extends Application {
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
 		
+		Scene scene = createMainScene(stage);
+		
+		stage.setScene(scene);
+		
+		stage.show();
+	}
+	
+	public Scene createMainScene(Stage stage) {
 		BorderPane root = new BorderPane();
 		
 		MenuBar menuBar = new MenuBar();
@@ -54,9 +63,43 @@ public class AnimalMain extends Application {
 		
 		root.setTop(menuBar);
 		
-		
 		VBox layout = new VBox();
-		layout.prefWidthProperty().bind(root.widthProperty());
+		
+		Label titleLabel = new Label("Welcome to the Friendly Fighting Arena (FFA for short)");
+		titleLabel.setFont(Font.font(24.0));
+		
+		List<Animal> baseAnimals = getBaseAnimals();
+		
+		HBox userAnimalBox = new HBox();
+		Label userAnimalLabel = new Label("Choose your fighter! (Or make your own!)");
+		ChoiceBox<String> userAnimalChoiceBox = new ChoiceBox<>();
+		userAnimalChoiceBox.getItems().addAll(baseAnimals.stream().map(t -> t.name).toList());
+		Button userAnimalAddNewButton = new Button("+");
+		userAnimalAddNewButton.setOnAction(e -> {
+			Stage animalStage = new Stage();
+			AnimalCreationReturnType animalCreationScene = createAnimalCreationScene(animalStage);
+			// TODO: left off here
+		});
+		
+		
+		
+		layout.getChildren().addAll(titleLabel);
+
+		Scene scene = new Scene(root);
+		
+		stage.setScene(scene);
+		
+		stage.setTitle("Create your animal");
+		stage.sizeToScene();
+		
+		return scene;
+	}
+	
+	record AnimalCreationReturnType(Scene scene, Animal animal) {}
+	
+	AnimalCreationReturnType createAnimalCreationScene(Stage stage) {
+		VBox layout = new VBox();
+		layout.prefWidthProperty().bind(stage.widthProperty());
 		layout.setPadding(new Insets(5.0));
 		layout.setSpacing(5.0);
 		
@@ -161,6 +204,10 @@ public class AnimalMain extends Application {
 		
 		//endregion
 		
+		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular variables in swing lambdas because of some reason. Java moment
+		
+		Scene scene = new Scene(layout, 600, 400);
+		
 		Button button = new Button("Create!");
 		button.setOnAction(e -> {
 			if (nameField.getText().length() == 0 || nameField.getText().length() > 64) {
@@ -175,12 +222,12 @@ public class AnimalMain extends Application {
 				new Alert(Alert.AlertType.ERROR, "You must select a base trait!").showAndWait();
 				return;
 			}
-			Animal animal = new Animal();
-			animal.name = nameField.getText();
-			animal.species = speciesField.getText();
-			animal.addTrait(availableBaseTraits.stream().filter(t -> t.name.equals(baseTraitChoiceBox.getValue())).findFirst().orElseThrow());
+			animal.set(new Animal());
+			animal.get().name = nameField.getText();
+			animal.get().species = speciesField.getText();
+			animal.get().addTrait(availableBaseTraits.stream().filter(t -> t.name.equals(baseTraitChoiceBox.getValue())).findFirst().orElseThrow());
 			for (Trait trait : otherTraitsListView.getSelectionModel().getSelectedItems().stream().map(s -> otherTraits.stream().filter(t -> t.name.equals(s)).findFirst().orElseThrow()).toList()) {
-				animal.addTrait(trait);
+				animal.get().addTrait(trait);
 			}
 			
 			System.out.println(animal);
@@ -190,17 +237,86 @@ public class AnimalMain extends Application {
 		layout.getChildren().addAll(label, nameBox, speciesBox, baseTraitBox, otherTraitsBox, button);
 		
 		
-		root.setCenter(layout);
-		
-		Scene scene = new Scene(root, 600, 400);
 		stage.setScene(scene);
-		stage.setTitle("Animal Main");
-		stage.show();
 		
+		stage.setTitle("Create your animal");
+		stage.sizeToScene();
 		
+		stage.showAndWait();
+		
+		return new AnimalCreationReturnType(scene, animal.get());
 	}
 	
 	public static void main(String[] args) {
 		Application.launch(AnimalMain.class);
+	}
+	
+	public List<Animal> getBaseAnimals() {
+		List<Animal> animals = new ArrayList<>();
+		
+		Animal lion = new Animal();
+		lion.species = "Lion";
+		lion.addTrait(new Trait("Lion Body", new ReflectiveModifier[] {
+				new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
+				new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
+				new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.accuracy", 0.8, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.damage", 10.0, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.damageRandomRange", 10.0, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.accuracy", 0.8, false, false, true),
+		}));
+		lion.addTrait(new Trait("Violent", new ReflectiveModifier[] {
+				new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
+				new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
+		}));
+		animals.add(lion);
+		
+		
+		Animal eagle = new Animal();
+		eagle.species = "Eagle";
+		eagle.addTrait(new Trait("Eagle Body", new ReflectiveModifier[] {
+				new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
+				new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
+				new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
+				new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 10.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.accuracy", 0.7, false, false, true),
+				new ReflectiveModifier("BeakAttackModule.damage", 10.0, false, false, true),
+				new ReflectiveModifier("BeakAttackModule.damageRandomRange", 5.0, false, false, true),
+				new ReflectiveModifier("BeakAttackModule.accuracy", 1.1, false, false, true),
+		}));
+		eagle.addTrait(new Trait("Large Feet", new ReflectiveModifier[] {
+				new ReflectiveModifier("LandMovementModule.speed", 1.5, true, false, true),
+		}));
+		eagle.addTrait(new Trait("Glass Cannon", new ReflectiveModifier[] {
+				new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
+				new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
+				new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
+		}));
+		animals.add(eagle);
+		
+		Animal cheetah = new Animal();
+		cheetah.species = "Cheetah";
+		eagle.addTrait(new Trait("Cheetah Body", new ReflectiveModifier[] {
+				new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
+				new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
+				new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
+				new ReflectiveModifier("ClawAttackModule.accuracy", 0.9, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.damage", 10.0, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.damageRandomRange", 10.0, false, false, true),
+				new ReflectiveModifier("BiteAttackModule.accuracy", 0.9, false, false, true),
+		}));
+		cheetah.addTrait(new Trait("Fast", new ReflectiveModifier[] {
+				new ReflectiveModifier("MovementModule.speed", 1.5, true, false, false),
+		}));
+		animals.add(cheetah);
+		
+		
+		return animals;
 	}
 }
