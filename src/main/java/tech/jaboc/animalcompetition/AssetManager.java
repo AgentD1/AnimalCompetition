@@ -8,7 +8,6 @@ public class AssetManager {
 	
 	static {
 		isJarFile = Objects.requireNonNull(AssetManager.class.getResource("AssetManager.class")).getProtocol().equals("jar");
-		System.out.println(isJarFile);
 	}
 	
 	public static boolean isJarFile() {
@@ -18,7 +17,6 @@ public class AssetManager {
 	public static InputStream getResourceStream(String name) {
 		InputStream input = AssetManager.class.getResourceAsStream("/resources/" + name);
 		if (input == null) {
-			System.out.println("Errors");
 			input = AssetManager.class.getClassLoader().getResourceAsStream(name);
 		}
 		
