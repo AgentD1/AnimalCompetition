@@ -58,17 +58,23 @@ public class Animal {
 							if (other.containsKey(c.name())) { // Use format: name: value xMultiplier% = finalValue
 								// TODO: change this to just display the whole number later
 								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, other.get(name), value * 100, other.get(name) * value));
+								other.remove(name);
 							} else {
 								other.put(name, value);
 							}
 						} else {
 							if (other.containsKey(c.name())) {
 								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, value, other.get(name) * 100, other.get(name) * value));
+								other.remove(name);
 							} else {
 								other.put(name, value);
 							}
 						}
 					}
+				}
+				
+				for(var entry : other.entrySet()) {
+					b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", entry.getKey(), entry.getValue(), 1.0 * 100, entry.getValue()));
 				}
 			} catch (IllegalAccessException e) { // This will not happen, and if it does, I need to know about it
 				throw new RuntimeException(e);
@@ -142,6 +148,12 @@ public class Animal {
 	public <T extends AnimalModule, R> R getFromModuleIfNotNull(Class<T> clazz, Function<T, R> function) {
 		T module = getModuleOfType(clazz);
 		if (module == null) return null;
+		return function.apply(module);
+	}
+	
+	public <T extends AnimalModule, R> R getFromModuleIfNotNullElse(Class<T> clazz, Function<T, R> function, R elseResult) {
+		T module = getModuleOfType(clazz);
+		if (module == null) return elseResult;
 		return function.apply(module);
 	}
 	
