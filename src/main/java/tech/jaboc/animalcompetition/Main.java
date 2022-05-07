@@ -2,14 +2,15 @@ package tech.jaboc.animalcompetition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import tech.jaboc.animalcompetition.animal.*;
+import tech.jaboc.animalcompetition.contest.*;
 import tech.jaboc.animalcompetition.environment.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.IntStream;
 
 public class Main {
-	public static void main(String[] args) throws InterruptedException, IOException {
+	public static void main(String[] args) throws IOException {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
@@ -175,33 +176,16 @@ public class Main {
 		System.out.println(userAnimal);
 		System.out.println(opponent);
 		
-		boolean playerTurn = true;
-		
-		while (userAnimal.getModuleOfType(BaseModule.class).currentHealth > 0 && opponent.getModuleOfType(BaseModule.class).currentHealth > 0) {
-			Animal aggressor = playerTurn ? userAnimal : opponent;
-			Animal victim = playerTurn ? opponent : userAnimal;
-			List<AttackModule> attacks = aggressor.getModulesOfType(AttackModule.class);
-			attacks = attacks.stream().filter(a -> a.canHitAnimal(victim)).toList();
-			
-			if (attacks.size() == 0) {
-				System.out.println(aggressor.name + " has no attacks that can hit!");
-				break;
-			}
-			
-			AttackModule randomAttack = attacks.get(r.nextInt(0, attacks.size()));
-			
-			System.out.printf("%s used %s!\n", aggressor.name, randomAttack.name);
-			
-			AttackModule.AttackResult attackResult = randomAttack.attackAnimal(victim);
-			
-			if(attackResult.hit()) {
-				System.out.printf(aggressor.name + " hit for %s damage.\n", attackResult.damage());
+		Contest fightContest = new FightContest();
+		Optional<Animal> winner = fightContest.resolve(userAnimal, opponent, arena, System.out);
+		if (winner.isPresent()) {
+			if (winner.get() == userAnimal) {
+				System.out.println("You won!");
 			} else {
-				System.out.println(aggressor.name + " missed lol");
+				System.out.println("You lost...");
 			}
-			
-			playerTurn = !playerTurn;
-			Thread.sleep(100);
+		} else {
+			System.out.println("You tied lol");
 		}
 	}
 }
