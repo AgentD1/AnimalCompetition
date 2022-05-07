@@ -1,6 +1,9 @@
 package tech.jaboc.animalcompetition.gui;
 
 import javafx.application.Application;
+import javafx.beans.property.*;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -64,27 +67,65 @@ public class AnimalMain extends Application {
 		root.setTop(menuBar);
 		
 		VBox layout = new VBox();
+		layout.setPadding(new Insets(5.0));
+		layout.setSpacing(5.0);
 		
 		Label titleLabel = new Label("Welcome to the Friendly Fighting Arena (FFA for short)");
 		titleLabel.setFont(Font.font(24.0));
 		
-		List<Animal> baseAnimals = getBaseAnimals();
+		List<Animal> baseAnimals = new ArrayList<>(getBaseAnimals());
+		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.stream().map(a -> a.species).toList()));
 		
 		HBox userAnimalBox = new HBox();
+		userAnimalBox.alignmentProperty().set(Pos.CENTER_LEFT);
+		userAnimalBox.setSpacing(5.0);
 		Label userAnimalLabel = new Label("Choose your fighter! (Or make your own!)");
 		ChoiceBox<String> userAnimalChoiceBox = new ChoiceBox<>();
-		userAnimalChoiceBox.getItems().addAll(baseAnimals.stream().map(t -> t.name).toList());
+		userAnimalChoiceBox.itemsProperty().bind(animalStrings);
 		Button userAnimalAddNewButton = new Button("+");
 		userAnimalAddNewButton.setOnAction(e -> {
 			Stage animalStage = new Stage();
-			AnimalCreationReturnType animalCreationScene = createAnimalCreationScene(animalStage);
-			// TODO: left off here
+			Animal animal = askUserForAnimal(animalStage);
+			if (animal == null) return;
+			baseAnimals.add(animal);
+			animalStrings.getValue().add(animal.species);
+			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
+		userAnimalBox.getChildren().addAll(userAnimalLabel, userAnimalChoiceBox, userAnimalAddNewButton);
 		
+		HBox opponentAnimalBox = new HBox();
+		opponentAnimalBox.alignmentProperty().set(Pos.CENTER_LEFT);
+		opponentAnimalBox.setSpacing(5.0);
+		Label opponentAnimalLabel = new Label("Choose your opponent! (Or make your own!)");
+		ChoiceBox<String> opponentAnimalChoiceBox = new ChoiceBox<>();
+		opponentAnimalChoiceBox.itemsProperty().bind(animalStrings);
+		Button opponentAnimalAddNewButton = new Button("+");
+		opponentAnimalAddNewButton.setOnAction(e -> {
+			Stage animalStage = new Stage();
+			Animal animal = askUserForAnimal(animalStage);
+			if (animal == null) return;
+			baseAnimals.add(animal);
+			animalStrings.getValue().add(animal.species);
+			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
+		});
+		opponentAnimalBox.getChildren().addAll(opponentAnimalLabel, opponentAnimalChoiceBox, opponentAnimalAddNewButton);
 		
+		TextArea fightTextArea = new TextArea();
 		
-		layout.getChildren().addAll(titleLabel);
-
+		Button startButton = new Button("Fight!!!");
+		startButton.setOnAction(e -> fightTextArea.appendText("I AM HERE!!!\n"));
+		
+		fightTextArea.setWrapText(false);
+		fightTextArea.setPrefRowCount(10);
+		fightTextArea.setFont(new Font(10.0));
+		fightTextArea.setPrefColumnCount(100);
+		fightTextArea.setEditable(false);
+		fightTextArea.setOpaqueInsets(new Insets(0));
+		
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, startButton, fightTextArea);
+		
+		root.setCenter(layout);
+		
 		Scene scene = new Scene(root);
 		
 		stage.setScene(scene);
@@ -95,9 +136,7 @@ public class AnimalMain extends Application {
 		return scene;
 	}
 	
-	record AnimalCreationReturnType(Scene scene, Animal animal) {}
-	
-	AnimalCreationReturnType createAnimalCreationScene(Stage stage) {
+	Animal askUserForAnimal(Stage stage) {
 		VBox layout = new VBox();
 		layout.prefWidthProperty().bind(stage.widthProperty());
 		layout.setPadding(new Insets(5.0));
@@ -204,7 +243,7 @@ public class AnimalMain extends Application {
 		
 		//endregion
 		
-		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular variables in swing lambdas because of some reason. Java moment
+		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular non-final variables in lambdas because of some reason. Java moment
 		
 		Scene scene = new Scene(layout, 600, 400);
 		
@@ -244,7 +283,7 @@ public class AnimalMain extends Application {
 		
 		stage.showAndWait();
 		
-		return new AnimalCreationReturnType(scene, animal.get());
+		return animal.get();
 	}
 	
 	public static void main(String[] args) {
