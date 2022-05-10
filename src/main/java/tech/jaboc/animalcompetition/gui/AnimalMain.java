@@ -1,8 +1,9 @@
 package tech.jaboc.animalcompetition.gui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
 import javafx.beans.property.*;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.value.*;
 import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -10,13 +11,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.*;
+import tech.jaboc.animalcompetition.AssetManager;
 import tech.jaboc.animalcompetition.animal.*;
+import tech.jaboc.animalcompetition.contest.*;
+import tech.jaboc.animalcompetition.environment.Environment;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AnimalMain extends Application {
 	public static Properties properties;
+	static Environment.JsonEnvironmentalFactorList factorList;
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -29,6 +35,12 @@ public class AnimalMain extends Application {
 		
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
+		
+		System.out.println(new File("src/main/resources/environmentalFactors.json").getAbsolutePath());
+		
+		factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
+				Environment.JsonEnvironmentalFactorList.class);
+		
 		
 		Scene scene = createMainScene(stage);
 		
@@ -113,13 +125,32 @@ public class AnimalMain extends Application {
 		TextArea fightTextArea = new TextArea();
 		
 		Button startButton = new Button("Fight!!!");
-		startButton.setOnAction(e -> fightTextArea.appendText("I AM HERE!!!\n"));
+		startButton.setOnAction(e -> {
+			Contest contest = new FightContest();
+			
+			Animal userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			Animal opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			
+			System.out.println(userAnimal);
+			System.out.println(opponentAnimal);
+			
+			fightTextArea.requestFocus();
+			
+			contest.resolve(userAnimal, opponentAnimal, Environment.generateEnvironment(factorList), new PrintStream(new OutputStream() {
+				@Override
+				public void write(int b) throws IOException {
+					fightTextArea.appendText(new String(Character.toChars(b)));
+				}
+			})); // TODO: make this scroll to bottom if you can be bothered
+			
+			
+		});
 		
 		fightTextArea.setWrapText(false);
 		fightTextArea.setPrefRowCount(10);
 		fightTextArea.setFont(new Font(10.0));
 		fightTextArea.setPrefColumnCount(100);
-		fightTextArea.setEditable(false);
+		fightTextArea.setEditable(true);
 		fightTextArea.setOpaqueInsets(new Insets(0));
 		
 		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, startButton, fightTextArea);
@@ -339,7 +370,7 @@ public class AnimalMain extends Application {
 		
 		Animal cheetah = new Animal();
 		cheetah.species = "Cheetah";
-		eagle.addTrait(new Trait("Cheetah Body", new ReflectiveModifier[] {
+		cheetah.addTrait(new Trait("Cheetah Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
 				new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
