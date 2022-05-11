@@ -9,9 +9,8 @@ import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
+import javafx.scene.text.*;
 import javafx.stage.*;
-import tech.jaboc.animalcompetition.AssetManager;
 import tech.jaboc.animalcompetition.animal.*;
 import tech.jaboc.animalcompetition.contest.*;
 import tech.jaboc.animalcompetition.environment.Environment;
@@ -122,28 +121,51 @@ public class AnimalMain extends Application {
 		});
 		opponentAnimalBox.getChildren().addAll(opponentAnimalLabel, opponentAnimalChoiceBox, opponentAnimalAddNewButton);
 		
+		AtomicReference<Environment> environment = new AtomicReference<>(); // Java moment part 2
+		
+		HBox environmentBox = new HBox();
+		environmentBox.setSpacing(5.0);
+		environmentBox.setAlignment(Pos.CENTER_LEFT);
+		Button environmentButton = new Button("Generate an environment");
+		Label environmentLabel = new Label("");
+		environmentButton.setOnAction(e -> {
+			environment.set(Environment.generateEnvironment(factorList));
+			environmentLabel.setText(environment.get().toString()); // TODO: Make this print nicely
+		});
+		
+		environmentBox.getChildren().addAll(environmentButton, environmentLabel);
+		
+		
 		TextArea fightTextArea = new TextArea();
 		
 		Button startButton = new Button("Fight!!!");
 		startButton.setOnAction(e -> {
 			Contest contest = new FightContest();
-			
-			Animal userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-			Animal opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			Animal userAnimal;
+			Animal opponentAnimal;
+			try {
+				userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+				opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			} catch(Exception ignored) {
+				new Alert(Alert.AlertType.ERROR, "You must do the thing!!!").showAndWait();
+				return;
+			}
 			
 			System.out.println(userAnimal);
 			System.out.println(opponentAnimal);
 			
-			fightTextArea.requestFocus();
+			//fightTextArea.requestFocus();
+			
+			fightTextArea.clear();
 			
 			contest.resolve(userAnimal, opponentAnimal, Environment.generateEnvironment(factorList), new PrintStream(new OutputStream() {
 				@Override
-				public void write(int b) throws IOException {
+				public void write(int b) {
 					fightTextArea.appendText(new String(Character.toChars(b)));
 				}
 			})); // TODO: make this scroll to bottom if you can be bothered
 			
-			
+			System.out.println("Done");
 		});
 		
 		fightTextArea.setWrapText(false);
@@ -153,7 +175,7 @@ public class AnimalMain extends Application {
 		fightTextArea.setEditable(true);
 		fightTextArea.setOpaqueInsets(new Insets(0));
 		
-		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, startButton, fightTextArea);
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, startButton, fightTextArea);
 		
 		root.setCenter(layout);
 		
