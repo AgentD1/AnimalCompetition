@@ -135,8 +135,13 @@ public class AnimalMain extends Application {
 		
 		environmentBox.getChildren().addAll(environmentButton, environmentLabel);
 		
-		
-		TextArea fightTextArea = new TextArea();
+		ScrollPane fightTextScrollPane = new ScrollPane();
+		VBox fightTextContainer = new VBox();
+		fightTextScrollPane.setContent(fightTextContainer);
+		VBox scrollPaneContainer = new VBox(fightTextScrollPane);
+		scrollPaneContainer.setPrefHeight(100.0);
+		VBox.setVgrow(scrollPaneContainer, Priority.ALWAYS);
+		fightTextScrollPane.prefHeightProperty().bind(scrollPaneContainer.heightProperty());
 		
 		Button startButton = new Button("Fight!!!");
 		startButton.setOnAction(e -> {
@@ -154,28 +159,32 @@ public class AnimalMain extends Application {
 			System.out.println(userAnimal);
 			System.out.println(opponentAnimal);
 			
-			//fightTextArea.requestFocus();
-			
-			fightTextArea.clear();
+			fightTextContainer.getChildren().clear();
 			
 			contest.resolve(userAnimal, opponentAnimal, Environment.generateEnvironment(factorList), new PrintStream(new OutputStream() {
+				Label currentLabel;
 				@Override
 				public void write(int b) {
-					fightTextArea.appendText(new String(Character.toChars(b)));
+					if(b == '\n') {
+						currentLabel = new Label();
+						fightTextContainer.getChildren().add(currentLabel);
+						fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+					} else {
+						if(currentLabel == null) {
+							currentLabel = new Label();
+							fightTextContainer.getChildren().add(currentLabel);
+						}
+						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
+					}
 				}
 			})); // TODO: make this scroll to bottom if you can be bothered
+			
+			fightTextScrollPane.setVvalue(Double.MAX_VALUE);
 			
 			System.out.println("Done");
 		});
 		
-		fightTextArea.setWrapText(false);
-		fightTextArea.setPrefRowCount(10);
-		fightTextArea.setFont(new Font(10.0));
-		fightTextArea.setPrefColumnCount(100);
-		fightTextArea.setEditable(true);
-		fightTextArea.setOpaqueInsets(new Insets(0));
-		
-		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, startButton, fightTextArea);
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, startButton, scrollPaneContainer);
 		
 		root.setCenter(layout);
 		
