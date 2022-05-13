@@ -102,7 +102,8 @@ public class AnimalMain extends Application {
 			animalStrings.getValue().add(animal.species);
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		userAnimalBox.getChildren().addAll(userAnimalLabel, userAnimalChoiceBox, userAnimalAddNewButton);
+		Button userAnimalEditButton = new Button("E");
+		userAnimalBox.getChildren().addAll(userAnimalLabel, userAnimalChoiceBox, userAnimalAddNewButton, userAnimalEditButton);
 		
 		HBox opponentAnimalBox = new HBox();
 		opponentAnimalBox.alignmentProperty().set(Pos.CENTER_LEFT);
@@ -115,11 +116,34 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			baseAnimals.add(animal);
+			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			if(match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
 			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		opponentAnimalBox.getChildren().addAll(opponentAnimalLabel, opponentAnimalChoiceBox, opponentAnimalAddNewButton);
+		Button opponentAnimalEditButton = new Button("E");
+		opponentAnimalEditButton.setOnAction(e -> {
+			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal animal = askUserForAnimal(new Stage(), a); // TODO: Test this
+			if (animal == null) return;
+			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			if(match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
+			animalStrings.getValue().add(animal.species);
+			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
+		});
+		opponentAnimalBox.getChildren().addAll(opponentAnimalLabel, opponentAnimalChoiceBox, opponentAnimalAddNewButton, opponentAnimalEditButton);
 		
 		AtomicReference<Environment> environment = new AtomicReference<>(); // Java moment part 2
 		
@@ -128,12 +152,39 @@ public class AnimalMain extends Application {
 		environmentBox.setAlignment(Pos.CENTER_LEFT);
 		Button environmentButton = new Button("Generate an environment");
 		Label environmentLabel = new Label("");
-		environmentButton.setOnAction(e -> {
-			environment.set(Environment.generateEnvironment(factorList));
-			environmentLabel.setText(environment.get().toString()); // TODO: Make this print nicely
-		});
+		
 		
 		environmentBox.getChildren().addAll(environmentButton, environmentLabel);
+		
+		GridPane environmentDisplayGrid = new GridPane();
+		environmentDisplayGrid.setHgap(10.0);
+		environmentDisplayGrid.setVgap(10.0);
+		environmentDisplayGrid.setPadding(new Insets(10.0));
+		environmentDisplayGrid.setAlignment(Pos.TOP_CENTER);
+		Label environmentTimeLabel = new Label("Time:\n");
+		Label environmentTerrainLabel = new Label("Terrain:\n");
+		Label environmentTemperatureLabel = new Label("Temperature:\n");
+		Label environmentWeatherLabel = new Label("Weather:\n");
+		Label environmentFeaturesLabel = new Label("Features:\n");
+		
+		environmentDisplayGrid.addColumn(0, environmentTimeLabel);
+		environmentDisplayGrid.addColumn(1, environmentTerrainLabel);
+		environmentDisplayGrid.addColumn(2, environmentTemperatureLabel);
+		environmentDisplayGrid.addColumn(3, environmentWeatherLabel);
+		environmentDisplayGrid.addColumn(4, environmentFeaturesLabel);
+		
+		environmentDisplayGrid.getRowConstraints().forEach(c -> c.setValignment(VPos.TOP));
+		
+		environmentButton.setOnAction(e -> {
+			Environment env = Environment.generateEnvironment(factorList);
+			environment.set(env);
+			environmentTimeLabel.setText("Time:\n" + env.timeFactor.name);
+			environmentTerrainLabel.setText("Terrain:\n" + env.terrainFactor.name);
+			environmentTemperatureLabel.setText("Temperature:\n" + env.temperatureFactor.name);
+			environmentWeatherLabel.setText("Weather:\n" + env.weatherFactor.name);
+			environmentFeaturesLabel.setText("Features:\n" + String.join("\n", env.features.stream().map(f -> f.name).toList()));
+			environmentDisplayGrid.setPrefHeight(75.0);
+		});
 		
 		ScrollPane fightTextScrollPane = new ScrollPane();
 		VBox fightTextContainer = new VBox();
@@ -161,7 +212,7 @@ public class AnimalMain extends Application {
 			
 			fightTextContainer.getChildren().clear();
 			
-			contest.resolve(userAnimal, opponentAnimal, Environment.generateEnvironment(factorList), new PrintStream(new OutputStream() {
+			contest.resolve(userAnimal, opponentAnimal, environment.get(), new PrintStream(new OutputStream() {
 				Label currentLabel;
 				@Override
 				public void write(int b) {
@@ -177,14 +228,14 @@ public class AnimalMain extends Application {
 						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
 					}
 				}
-			})); // TODO: make this scroll to bottom if you can be bothered
+			}));
 			
 			fightTextScrollPane.setVvalue(Double.MAX_VALUE);
 			
 			System.out.println("Done");
 		});
 		
-		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, startButton, scrollPaneContainer);
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, environmentDisplayGrid, startButton, scrollPaneContainer);
 		
 		root.setCenter(layout);
 		
@@ -199,6 +250,10 @@ public class AnimalMain extends Application {
 	}
 	
 	Animal askUserForAnimal(Stage stage) {
+		return askUserForAnimal(stage, new Animal());
+	}
+	
+	Animal askUserForAnimal(Stage stage, Animal defaults) {
 		VBox layout = new VBox();
 		layout.prefWidthProperty().bind(stage.widthProperty());
 		layout.setPadding(new Insets(5.0));
@@ -213,6 +268,7 @@ public class AnimalMain extends Application {
 		Label nameLabel = new Label("Enter the name of your animal: ");
 		TextField nameField = new TextField();
 		nameField.setPromptText("Name here...");
+		nameField.setText(defaults.name);
 		nameBox.getChildren().addAll(nameLabel, nameField);
 		//endregion
 		
@@ -222,6 +278,7 @@ public class AnimalMain extends Application {
 		Label speciesLabel = new Label("Enter the species of your animal: ");
 		TextField speciesField = new TextField();
 		speciesField.setPromptText("Species here...");
+		speciesField.setText(defaults.species);
 		speciesBox.getChildren().addAll(speciesLabel, speciesField);
 		//endregion
 		
@@ -268,6 +325,10 @@ public class AnimalMain extends Application {
 		Label baseTraitLabel = new Label("Pick a base to build your animal from: ");
 		ChoiceBox<String> baseTraitChoiceBox = new ChoiceBox<>();
 		baseTraitChoiceBox.getItems().addAll(availableBaseTraits.stream().map(t -> t.name).toList());
+		String defaultBaseTrait = defaults.getTraits().stream().filter(availableBaseTraits::contains).map(t -> t.name).findFirst().orElse(null);
+		if(defaultBaseTrait != null) {
+			baseTraitChoiceBox.getSelectionModel().select(defaultBaseTrait);
+		}
 		baseTraitBox.getChildren().addAll(baseTraitLabel, baseTraitChoiceBox);
 		
 		//endregion
@@ -301,6 +362,12 @@ public class AnimalMain extends Application {
 		otherTraitsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		otherTraitsListView.getItems().addAll(otherTraits.stream().map(t -> t.name).toList());
 		otherTraitsListView.setMaxHeight(24 * 5);
+		
+		List<String> otherTraitsDefaults = defaults.getTraits().stream().filter(otherTraits::contains).map(t -> t.name).toList();
+		if(defaultBaseTrait != null) {
+			otherTraitsDefaults.stream().filter(t -> otherTraits.stream().anyMatch(x -> x.name.equals(t))).forEach(t -> otherTraitsListView.getSelectionModel().select(t));
+		}
+		
 		otherTraitsBox.getChildren().addAll(otherTraitsLabel, otherTraitsListView);
 		
 		//endregion
