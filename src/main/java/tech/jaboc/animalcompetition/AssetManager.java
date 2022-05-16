@@ -1,6 +1,6 @@
 package tech.jaboc.animalcompetition;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.Objects;
 
 public class AssetManager {
@@ -15,7 +15,8 @@ public class AssetManager {
 	}
 	
 	public static InputStream getResourceStream(String name) {
-		InputStream input = AssetManager.class.getResourceAsStream("/resources/" + name);
+		System.out.println(new File("/" + name).getAbsolutePath());
+		InputStream input = AssetManager.class.getResourceAsStream("/" + name);
 		if (input == null) {
 			input = AssetManager.class.getClassLoader().getResourceAsStream(name);
 		}
