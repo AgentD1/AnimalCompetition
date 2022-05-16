@@ -10,6 +10,9 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * An animal is the base class for a competitor in the competition.
+ */
 @JsonSerialize(using = AnimalSerializer.class)
 @JsonDeserialize(using = AnimalDeserializer.class)
 public class Animal {
@@ -20,10 +23,18 @@ public class Animal {
 	
 	List<Trait> traits = new ArrayList<>();
 	
+	/**
+	 * Gets an unmodifiable list of the animal's traits
+	 * @return An unmodifiable list of the animal's traits
+	 */
 	public List<Trait> getTraits() {
 		return Collections.unmodifiableList(traits);
 	}
 	
+	/**
+	 * Adds a trait to the animal
+	 * @param trait The trait to add
+	 */
 	public void addTrait(Trait trait) {
 		traits.add(trait);
 		for (Modifier mod : trait.modifiers) {
@@ -31,6 +42,10 @@ public class Animal {
 		}
 	}
 	
+	/**
+	 * Remove a trait from the animal
+	 * @param trait The trait to remove
+	 */
 	public void removeTrait(Trait trait) {
 		if (!traits.contains(trait)) throw new NullPointerException("Animal does not contain this trait! " + trait);
 		for (Modifier mod : trait.modifiers) {
@@ -39,6 +54,10 @@ public class Animal {
 		traits.remove(trait);
 	}
 	
+	/**
+	 * Registers an environment for use on this animal. Can technically be used to register multiple environments, but shouldn't
+	 * @param environment The environment to register
+	 */
 	public void addEnvironment(Environment environment) {
 		for (EnvironmentalFactor f : environment.features) {
 			for (Modifier mod : f.modifiers) {
@@ -47,6 +66,10 @@ public class Animal {
 		}
 	}
 	
+	/**
+	 * Unregisters an environment for use on this animal. Can technically be used on environments that were never added, but shouldn't
+	 * @param environment The environment to unregister
+	 */
 	public void removeEnvironment(Environment environment) {
 		for (EnvironmentalFactor f : environment.features) {
 			for (Modifier mod : f.modifiers) {
@@ -111,6 +134,12 @@ public class Animal {
 	
 	//region Module Management
 	
+	/**
+	 * Gets a module of a given type, if there is one present. Returns null otherwise. This works with superclasses.
+	 * @param clazz The class of the module type to search for
+	 * @param <T> The type of the module to search for
+	 * @return The module of the given type, or null
+	 */
 	@Contract(pure = true)
 	public <T extends AnimalModule> T getModuleOfType(Class<T> clazz) {
 		for (AnimalModule module : modules) {
@@ -123,6 +152,12 @@ public class Animal {
 		return null;
 	}
 	
+	/**
+	 * Gets all the modules of a given type. This works with superclasses.
+	 * @param clazz The class of the module type to search for
+	 * @param <T> The type of the module to search for
+	 * @return A list of all modules of this type
+	 */
 	@Contract(pure = true)
 	public <T extends AnimalModule> List<T> getModulesOfType(Class<T> clazz) {
 		List<T> matches = new ArrayList<>();
