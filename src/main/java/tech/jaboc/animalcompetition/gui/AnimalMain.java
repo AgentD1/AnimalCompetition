@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.*;
 import javafx.stage.*;
+import org.jetbrains.annotations.Nullable;
 import tech.jaboc.animalcompetition.animal.*;
 import tech.jaboc.animalcompetition.contest.*;
 import tech.jaboc.animalcompetition.environment.Environment;
@@ -130,7 +131,7 @@ public class AnimalMain extends Application {
 		Button opponentAnimalEditButton = new Button("E");
 		opponentAnimalEditButton.setOnAction(e -> {
 			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
-			Animal animal = askUserForAnimal(new Stage(), a); // TODO: Test this
+			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
 			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
 			if(match == null) {
@@ -140,7 +141,6 @@ public class AnimalMain extends Application {
 				baseAnimals.remove(match);
 				baseAnimals.add(animal);
 			}
-			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
 		opponentAnimalBox.getChildren().addAll(opponentAnimalLabel, opponentAnimalChoiceBox, opponentAnimalAddNewButton, opponentAnimalEditButton);
@@ -182,7 +182,13 @@ public class AnimalMain extends Application {
 			environmentTerrainLabel.setText("Terrain:\n" + env.terrainFactor.name);
 			environmentTemperatureLabel.setText("Temperature:\n" + env.temperatureFactor.name);
 			environmentWeatherLabel.setText("Weather:\n" + env.weatherFactor.name);
-			environmentFeaturesLabel.setText("Features:\n" + String.join("\n", env.features.stream().map(f -> f.name).toList()));
+			if(env.features.size() == 0) {
+				environmentFeaturesLabel.setText("Features:\nNone");
+			} else {
+				environmentFeaturesLabel.setText("Features:\n" + String.join(", ", env.features.stream().map(f -> f.name).toList()));
+				System.out.println(env.features.size());
+			}
+			
 			environmentDisplayGrid.setPrefHeight(75.0);
 		});
 		
@@ -253,7 +259,7 @@ public class AnimalMain extends Application {
 		return askUserForAnimal(stage, new Animal());
 	}
 	
-	Animal askUserForAnimal(Stage stage, Animal defaults) {
+	Animal askUserForAnimal(Stage stage, @Nullable Animal defaults) {
 		VBox layout = new VBox();
 		layout.prefWidthProperty().bind(stage.widthProperty());
 		layout.setPadding(new Insets(5.0));
@@ -268,7 +274,7 @@ public class AnimalMain extends Application {
 		Label nameLabel = new Label("Enter the name of your animal: ");
 		TextField nameField = new TextField();
 		nameField.setPromptText("Name here...");
-		nameField.setText(defaults.name);
+		nameField.setText(defaults == null ? "" : defaults.name);
 		nameBox.getChildren().addAll(nameLabel, nameField);
 		//endregion
 		
@@ -278,7 +284,7 @@ public class AnimalMain extends Application {
 		Label speciesLabel = new Label("Enter the species of your animal: ");
 		TextField speciesField = new TextField();
 		speciesField.setPromptText("Species here...");
-		speciesField.setText(defaults.species);
+		speciesField.setText(defaults == null ? "" : defaults.species);
 		speciesBox.getChildren().addAll(speciesLabel, speciesField);
 		//endregion
 		
@@ -325,11 +331,14 @@ public class AnimalMain extends Application {
 		Label baseTraitLabel = new Label("Pick a base to build your animal from: ");
 		ChoiceBox<String> baseTraitChoiceBox = new ChoiceBox<>();
 		baseTraitChoiceBox.getItems().addAll(availableBaseTraits.stream().map(t -> t.name).toList());
-		String defaultBaseTrait = defaults.getTraits().stream().filter(availableBaseTraits::contains).map(t -> t.name).findFirst().orElse(null);
-		if(defaultBaseTrait != null) {
-			baseTraitChoiceBox.getSelectionModel().select(defaultBaseTrait);
+		if(defaults != null) {
+			String defaultBaseTrait = defaults.getTraits().stream().filter(t -> availableBaseTraits.stream().anyMatch(x -> x.name.equals(t.name))).map(t -> t.name).findFirst().orElse(null);
+			if (defaultBaseTrait != null) {
+				System.out.println(defaultBaseTrait);
+				baseTraitChoiceBox.getSelectionModel().select(defaultBaseTrait);
+			}
+			baseTraitBox.getChildren().addAll(baseTraitLabel, baseTraitChoiceBox);
 		}
-		baseTraitBox.getChildren().addAll(baseTraitLabel, baseTraitChoiceBox);
 		
 		//endregion
 		
@@ -363,8 +372,8 @@ public class AnimalMain extends Application {
 		otherTraitsListView.getItems().addAll(otherTraits.stream().map(t -> t.name).toList());
 		otherTraitsListView.setMaxHeight(24 * 5);
 		
-		List<String> otherTraitsDefaults = defaults.getTraits().stream().filter(otherTraits::contains).map(t -> t.name).toList();
-		if(defaultBaseTrait != null) {
+		if(defaults != null) {
+			List<String> otherTraitsDefaults = defaults.getTraits().stream().filter(t -> otherTraits.stream().anyMatch(x -> x.name.equals(t.name))).map(t -> t.name).toList();
 			otherTraitsDefaults.stream().filter(t -> otherTraits.stream().anyMatch(x -> x.name.equals(t))).forEach(t -> otherTraitsListView.getSelectionModel().select(t));
 		}
 		
@@ -378,11 +387,11 @@ public class AnimalMain extends Application {
 		
 		Button button = new Button("Create!");
 		button.setOnAction(e -> {
-			if (nameField.getText().length() == 0 || nameField.getText().length() > 64) {
+			if (nameField.getText() == null || nameField.getText().length() == 0 || nameField.getText().length() > 64) {
 				new Alert(Alert.AlertType.ERROR, "Name must be between 1 and 64 characters!").showAndWait();
 				return;
 			}
-			if (speciesField.getText().length() == 0 || speciesField.getText().length() > 64) {
+			if (speciesField.getText() == null || speciesField.getText().length() == 0 || speciesField.getText().length() > 64) {
 				new Alert(Alert.AlertType.ERROR, "Species must be between 1 and 64 characters!").showAndWait();
 				return;
 			}
