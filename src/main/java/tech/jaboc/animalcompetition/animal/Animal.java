@@ -25,6 +25,7 @@ public class Animal {
 	
 	/**
 	 * Gets an unmodifiable list of the animal's traits
+	 *
 	 * @return An unmodifiable list of the animal's traits
 	 */
 	public List<Trait> getTraits() {
@@ -33,6 +34,7 @@ public class Animal {
 	
 	/**
 	 * Adds a trait to the animal
+	 *
 	 * @param trait The trait to add
 	 */
 	public void addTrait(Trait trait) {
@@ -44,6 +46,7 @@ public class Animal {
 	
 	/**
 	 * Remove a trait from the animal
+	 *
 	 * @param trait The trait to remove
 	 */
 	public void removeTrait(Trait trait) {
@@ -56,6 +59,7 @@ public class Animal {
 	
 	/**
 	 * Registers an environment for use on this animal. Can technically be used to register multiple environments, but shouldn't
+	 *
 	 * @param environment The environment to register
 	 */
 	public void addEnvironment(Environment environment) {
@@ -68,6 +72,7 @@ public class Animal {
 	
 	/**
 	 * Unregisters an environment for use on this animal. Can technically be used on environments that were never added, but shouldn't
+	 *
 	 * @param environment The environment to unregister
 	 */
 	public void removeEnvironment(Environment environment) {
@@ -113,7 +118,7 @@ public class Animal {
 					}
 				}
 				
-				for(var entry : other.entrySet()) {
+				for (var entry : other.entrySet()) {
 					b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", entry.getKey(), entry.getValue(), 1.0 * 100, entry.getValue()));
 				}
 			} catch (IllegalAccessException e) { // This will not happen, and if it does, I need to know about it
@@ -136,8 +141,9 @@ public class Animal {
 	
 	/**
 	 * Gets a module of a given type, if there is one present. Returns null otherwise. This works with superclasses.
+	 *
 	 * @param clazz The class of the module type to search for
-	 * @param <T> The type of the module to search for
+	 * @param <T>   The type of the module to search for
 	 * @return The module of the given type, or null
 	 */
 	@Contract(pure = true)
@@ -154,8 +160,9 @@ public class Animal {
 	
 	/**
 	 * Gets all the modules of a given type. This works with superclasses.
+	 *
 	 * @param clazz The class of the module type to search for
-	 * @param <T> The type of the module to search for
+	 * @param <T>   The type of the module to search for
 	 * @return A list of all modules of this type
 	 */
 	@Contract(pure = true)
@@ -172,6 +179,12 @@ public class Animal {
 		return matches;
 	}
 	
+	/**
+	 * Checks if this animal has a module with a matching type. This works with superclasses.
+	 *
+	 * @param clazz The class of the module type to search for
+	 * @return True if a matching module is found, false otherwise
+	 */
 	@Contract(pure = true)
 	public boolean hasModuleOfType(Class<? extends AnimalModule> clazz) {
 		for (AnimalModule module : modules) {
@@ -183,6 +196,11 @@ public class Animal {
 		return false;
 	}
 	
+	/**
+	 * Adds a given module to the animal.
+	 *
+	 * @param module The module to add. There can't be 2 modules of the same type, although siblings of a module subclass are ok.
+	 */
 	public void addModule(AnimalModule module) {
 		if (modules.stream().anyMatch(x -> x.getClass().getName().equals(module.getClass().getName()))) {
 			throw new IllegalStateException("Cannot insert module of type " + module + " to " + this + ", one already exists in the list");
@@ -190,6 +208,14 @@ public class Animal {
 		modules.add(module);
 	}
 	
+	/**
+	 * Apply a given function to a module of given type if a matching module is found.
+	 *
+	 * @param clazz    The class of the module type to use
+	 * @param function The function to apply to the module
+	 * @param <T>      The type of the module to use
+	 * @return True if the function is applied successfully, false otherwise.
+	 */
 	public <T extends AnimalModule> boolean applyToModuleIfNotNull(Class<T> clazz, Consumer<T> function) {
 		T module = getModuleOfType(clazz);
 		if (module == null) return false;
@@ -197,12 +223,31 @@ public class Animal {
 		return true;
 	}
 	
+	/**
+	 * Get a value from a module of the given type, if present. Returns null if the module isn't present
+	 *
+	 * @param clazz    The class of the module type to use
+	 * @param function The function to get the given type
+	 * @param <T>      The type of the module to use
+	 * @param <R>      The return type
+	 * @return The return of the given function, unless the module doesn't exist, in which case null
+	 */
 	public <T extends AnimalModule, R> R getFromModuleIfNotNull(Class<T> clazz, Function<T, R> function) {
 		T module = getModuleOfType(clazz);
 		if (module == null) return null;
 		return function.apply(module);
 	}
 	
+	/**
+	 * Get a value from a module of the given type, if present. Returns a fallback if the module isn't present
+	 *
+	 * @param clazz      The class of the module type to use
+	 * @param function   The function to get the given type
+	 * @param elseResult The fallback value
+	 * @param <T>        The type of the module to use
+	 * @param <R>        The return type
+	 * @return The return of the given function, unless the module doesn't exist, in which case the fallback value
+	 */
 	public <T extends AnimalModule, R> R getFromModuleIfNotNullElse(Class<T> clazz, Function<T, R> function, R elseResult) {
 		T module = getModuleOfType(clazz);
 		if (module == null) return elseResult;

@@ -8,9 +8,10 @@ import java.util.Scanner;
 public class UserInputUtils {
 	/**
 	 * Get a single constrained character as input from the user
-	 * @param in The scanner to read from
+	 *
+	 * @param in                The scanner to read from
 	 * @param allowedCharacters A list of allowed characters (must be lowercase)
-	 * @param repeatMessage The message to print if the user enters an illegal character
+	 * @param repeatMessage     The message to print if the user enters an illegal character
 	 * @return The user's character
 	 */
 	public static char getUserCharSelection(Scanner in, String allowedCharacters, String repeatMessage) {
@@ -28,9 +29,10 @@ public class UserInputUtils {
 	
 	/**
 	 * Get a single constrained character as input from the user
-	 * @param in The scanner to read from
+	 *
+	 * @param in                The scanner to read from
 	 * @param allowedCharacters A list of allowed characters (case-sensitive)
-	 * @param repeatMessage The message to print if the user enters an illegal character
+	 * @param repeatMessage     The message to print if the user enters an illegal character
 	 * @return The user's character
 	 */
 	public static char getUserCharSelectionCaseSensitive(Scanner in, String allowedCharacters, String repeatMessage) {
@@ -48,7 +50,8 @@ public class UserInputUtils {
 	
 	/**
 	 * Gets a constrained int from the user
-	 * @param in The scanner to read from
+	 *
+	 * @param in         The scanner to read from
 	 * @param lowerBound The lowest integer allowed
 	 * @param upperBound The highest integer allowed
 	 * @return The user's selection
@@ -59,9 +62,10 @@ public class UserInputUtils {
 	
 	/**
 	 * Gets a constrained int from the user
-	 * @param in The scanner to read from
-	 * @param lowerBound The lowest integer allowed
-	 * @param upperBound The highest integer allowed
+	 *
+	 * @param in            The scanner to read from
+	 * @param lowerBound    The lowest integer allowed
+	 * @param upperBound    The highest integer allowed
 	 * @param repeatMessage The message to print if the user enters an illegal character
 	 * @return The user's selection
 	 */

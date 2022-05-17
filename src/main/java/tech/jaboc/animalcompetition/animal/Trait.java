@@ -2,6 +2,9 @@ package tech.jaboc.animalcompetition.animal;
 
 import com.fasterxml.jackson.annotation.*;
 
+/**
+ * Represents a trait: a series of modifiers with a name.
+ */
 public class Trait {
 	public String name;
 	public Modifier[] modifiers;

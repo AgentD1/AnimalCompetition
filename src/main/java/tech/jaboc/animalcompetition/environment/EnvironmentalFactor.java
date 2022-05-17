@@ -3,6 +3,9 @@ package tech.jaboc.animalcompetition.environment;
 import com.fasterxml.jackson.annotation.*;
 import tech.jaboc.animalcompetition.animal.*;
 
+/**
+ * An environmental factor. Contains modifiers that this environmental factor inflicts, as well as a name, description, and a few data points for environment generation
+ */
 public class EnvironmentalFactor {
 	public String name;
 	public String description = "No Description Provided";
@@ -41,5 +44,11 @@ public class EnvironmentalFactor {
 		return name;
 	}
 	
+	/**
+	 * Represents a probability modifier for other environmental factors during generation
+	 *
+	 * @param factorName The name of the factor this effects
+	 * @param multiplier A multiplier to the probability
+	 */
 	public record FactorModifier(String factorName, double multiplier) { }
 }
