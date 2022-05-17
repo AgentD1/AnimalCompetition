@@ -25,6 +25,15 @@ public class ReflectiveModifier extends Modifier {
 	@JsonIgnore
 	Class<? extends AnimalModule> module;
 	
+	/**
+	 * Creates a new ReflectiveModifier
+	 * @param fieldName The name of the field to use. This should match the name in the AnimalComponent Attribute
+	 * @param value The value of this modifier
+	 * @param multiplier Whether this modifier is a multiplier (true) or an adder (false)
+	 * @param strict Whether this modifier should throw an exception if the requested modifier doesn't exist (false means it will do nothing)
+	 * @param autoAdd Whether this modifier should automatically add a new modifier to the animal of the specified type if one does not already
+	 *                exist. (false means it will do nothing)
+	 */
 	@JsonCreator
 	public ReflectiveModifier(String fieldName, double value, boolean multiplier, boolean strict, boolean autoAdd) {
 		this.fieldName = fieldName;
@@ -76,6 +85,10 @@ public class ReflectiveModifier extends Modifier {
 		this(fieldName, value, multiplier, true, false);
 	}
 	
+	/**
+	 * Adds this modifier to an animal
+	 * @param animal The animal to add to
+	 */
 	@Override
 	public void add(Animal animal) {
 		List<? extends AnimalModule> myModules = animal.getModulesOfType(module);
@@ -107,16 +120,22 @@ public class ReflectiveModifier extends Modifier {
 		}
 	}
 	
+	/**
+	 * Removes this modifier from an animal
+	 * @param animal The animal to remove
+	 */
 	@Override
 	public void remove(Animal animal) {
-		try {
-			if (multiplier) {
-				modifyField.set(animal, (double) modifyField.get(animal) / value);
-			} else {
-				modifyField.set(animal, (double) modifyField.get(animal) - value);
+		for(var myModule : animal.getModulesOfType(module)) {
+			try {
+				if (multiplier) {
+					modifyField.set(myModule, (double) modifyField.get(modifyField) / value);
+				} else {
+					modifyField.set(myModule, (double) modifyField.get(modifyField) - value);
+				}
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
 			}
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
 		}
 	}
 	

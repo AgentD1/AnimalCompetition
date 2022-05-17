@@ -8,6 +8,9 @@ import tech.jaboc.animalcompetition.animal.*;
 import java.io.IOException;
 import java.util.Iterator;
 
+/**
+ * Deserializes animals. Is used for JSON parsing
+ */
 public class AnimalDeserializer extends StdDeserializer<Animal> {
 	public AnimalDeserializer() {
 		this(null);

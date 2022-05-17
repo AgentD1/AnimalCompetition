@@ -7,6 +7,9 @@ import tech.jaboc.animalcompetition.animal.ReflectiveModifier;
 
 import java.io.IOException;
 
+/**
+ * Deserializes ReflectiveModifiers. Is used for JSON.
+ */
 public class ReflectiveModifierDeserializer extends StdDeserializer<ReflectiveModifier> {
 	public ReflectiveModifierDeserializer() {
 		this(null);
