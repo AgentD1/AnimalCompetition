@@ -7,6 +7,9 @@ import tech.jaboc.animalcompetition.animal.*;
 
 import java.io.IOException;
 
+/**
+ * Serializes animals. Is used for JSON.
+ */
 public class AnimalSerializer extends StdSerializer<Animal> {
 	public AnimalSerializer() {
 		this(null);
