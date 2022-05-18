@@ -20,10 +20,19 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * The GUI class, which controls the GUI.
+ */
 public class AnimalMain extends Application {
 	public static Properties properties;
 	static Environment.JsonEnvironmentalFactorList factorList;
 	
+	/**
+	 * Starts the GUI
+	 *
+	 * @param stage The stage
+	 * @throws Exception A couple unlikely IO errors I can't be bothered to catch.
+	 */
 	@Override
 	public void start(Stage stage) throws Exception {
 		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
@@ -49,6 +58,12 @@ public class AnimalMain extends Application {
 		stage.show();
 	}
 	
+	/**
+	 * Creates the main scene
+	 *
+	 * @param stage The stage
+	 * @return The scene
+	 */
 	public Scene createMainScene(Stage stage) {
 		BorderPane root = new BorderPane();
 		
@@ -99,11 +114,32 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			baseAnimals.add(animal);
+			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			if (match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
 			animalStrings.getValue().add(animal.species);
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		Button userAnimalEditButton = new Button("E");
+		Button userAnimalEditButton = new Button("Edit");
+		userAnimalEditButton.setOnAction(e -> {
+			Animal a = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal animal = askUserForAnimal(new Stage(), a);
+			if (animal == null) return;
+			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			if (match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
+			userAnimalChoiceBox.getSelectionModel().select(animal.species);
+		});
 		userAnimalBox.getChildren().addAll(userAnimalLabel, userAnimalChoiceBox, userAnimalAddNewButton, userAnimalEditButton);
 		
 		HBox opponentAnimalBox = new HBox();
@@ -118,7 +154,7 @@ public class AnimalMain extends Application {
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
 			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
-			if(match == null) {
+			if (match == null) {
 				baseAnimals.add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
@@ -128,13 +164,13 @@ public class AnimalMain extends Application {
 			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		Button opponentAnimalEditButton = new Button("E");
+		Button opponentAnimalEditButton = new Button("Edit");
 		opponentAnimalEditButton.setOnAction(e -> {
 			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
 			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
-			if(match == null) {
+			if (match == null) {
 				baseAnimals.add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
@@ -182,7 +218,7 @@ public class AnimalMain extends Application {
 			environmentTerrainLabel.setText("Terrain:\n" + env.terrainFactor.name);
 			environmentTemperatureLabel.setText("Temperature:\n" + env.temperatureFactor.name);
 			environmentWeatherLabel.setText("Weather:\n" + env.weatherFactor.name);
-			if(env.features.size() == 0) {
+			if (env.features.size() == 0) {
 				environmentFeaturesLabel.setText("Features:\nNone");
 			} else {
 				environmentFeaturesLabel.setText("Features:\n" + String.join(", ", env.features.stream().map(f -> f.name).toList()));
@@ -208,7 +244,7 @@ public class AnimalMain extends Application {
 			try {
 				userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
 				opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-			} catch(Exception ignored) {
+			} catch (Exception ignored) {
 				new Alert(Alert.AlertType.ERROR, "You must do the thing!!!").showAndWait();
 				return;
 			}
@@ -220,14 +256,15 @@ public class AnimalMain extends Application {
 			
 			contest.resolve(userAnimal, opponentAnimal, environment.get(), new PrintStream(new OutputStream() {
 				Label currentLabel;
+				
 				@Override
 				public void write(int b) {
-					if(b == '\n') {
+					if (b == '\n') {
 						currentLabel = new Label();
 						fightTextContainer.getChildren().add(currentLabel);
 						fightTextScrollPane.setVvalue(Double.MAX_VALUE);
 					} else {
-						if(currentLabel == null) {
+						if (currentLabel == null) {
 							currentLabel = new Label();
 							fightTextContainer.getChildren().add(currentLabel);
 						}
@@ -255,10 +292,23 @@ public class AnimalMain extends Application {
 		return scene;
 	}
 	
+	/**
+	 * Asks the user for an animal
+	 *
+	 * @param stage A stage to display the prompt on
+	 * @return The user's animal choice. Null if the user cancels.
+	 */
 	Animal askUserForAnimal(Stage stage) {
 		return askUserForAnimal(stage, new Animal());
 	}
 	
+	/**
+	 * Asks the user for an animal
+	 *
+	 * @param stage    A stage to display the prompt on
+	 * @param defaults An existing animal to edit/build upon
+	 * @return The user's animal choice. Null if the user cancels.
+	 */
 	Animal askUserForAnimal(Stage stage, @Nullable Animal defaults) {
 		VBox layout = new VBox();
 		layout.prefWidthProperty().bind(stage.widthProperty());
@@ -331,7 +381,7 @@ public class AnimalMain extends Application {
 		Label baseTraitLabel = new Label("Pick a base to build your animal from: ");
 		ChoiceBox<String> baseTraitChoiceBox = new ChoiceBox<>();
 		baseTraitChoiceBox.getItems().addAll(availableBaseTraits.stream().map(t -> t.name).toList());
-		if(defaults != null) {
+		if (defaults != null) {
 			String defaultBaseTrait = defaults.getTraits().stream().filter(t -> availableBaseTraits.stream().anyMatch(x -> x.name.equals(t.name))).map(t -> t.name).findFirst().orElse(null);
 			if (defaultBaseTrait != null) {
 				System.out.println(defaultBaseTrait);
@@ -372,7 +422,7 @@ public class AnimalMain extends Application {
 		otherTraitsListView.getItems().addAll(otherTraits.stream().map(t -> t.name).toList());
 		otherTraitsListView.setMaxHeight(24 * 5);
 		
-		if(defaults != null) {
+		if (defaults != null) {
 			List<String> otherTraitsDefaults = defaults.getTraits().stream().filter(t -> otherTraits.stream().anyMatch(x -> x.name.equals(t.name))).map(t -> t.name).toList();
 			otherTraitsDefaults.stream().filter(t -> otherTraits.stream().anyMatch(x -> x.name.equals(t))).forEach(t -> otherTraitsListView.getSelectionModel().select(t));
 		}
@@ -424,10 +474,11 @@ public class AnimalMain extends Application {
 		return animal.get();
 	}
 	
-	public static void main(String[] args) {
-		Application.launch(AnimalMain.class);
-	}
-	
+	/**
+	 * Gets a list of the base animals
+	 *
+	 * @return The list of the base animals
+	 */
 	public List<Animal> getBaseAnimals() {
 		List<Animal> animals = new ArrayList<>();
 		

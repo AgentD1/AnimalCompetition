@@ -7,6 +7,9 @@ import tech.jaboc.animalcompetition.environment.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * Creates the initial JSON file. Don't touch this and probably don't read it
+ */
 public class EnvironmentFactorCreator {
 	public static void writeEnvironmentalFactors() {
 		//TODO: make water

@@ -2,6 +2,11 @@ package tech.jaboc.animalcompetition.animal;
 
 import java.util.*;
 
+/**
+ * A class to represent an animal's ability to move. Is abstract.
+ * @see LandMovementModule
+ * @see AirMovementModule
+ */
 public abstract class MovementModule extends AnimalModule {
 	@AnimalComponent(name = "speed", multiplier = false)
 	public double baseSpeed;

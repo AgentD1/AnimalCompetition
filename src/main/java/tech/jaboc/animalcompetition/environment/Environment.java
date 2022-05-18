@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.*;
 import java.util.*;
 import java.util.stream.*;
 
+/**
+ * Represents an environment that animals can fight in
+ */
 public class Environment {
 	public EnvironmentalFactor timeFactor;
 	public EnvironmentalFactor terrainFactor;
@@ -12,6 +15,11 @@ public class Environment {
 	public EnvironmentalFactor weatherFactor;
 	public List<EnvironmentalFactor> features;
 	
+	/**
+	 * Gets a list of environmental factors that this environment contains
+	 *
+	 * @return The list of all environmental factors
+	 */
 	@JsonIgnore
 	public List<EnvironmentalFactor> getAllEnvironmentalFactors() {
 		List<EnvironmentalFactor> returnValue = new ArrayList<>(features);
@@ -31,6 +39,12 @@ public class Environment {
 		this.features = features;
 	}
 	
+	/**
+	 * Generates a new environment from a given factor list
+	 *
+	 * @param factorList The list of factors loaded from a json file
+	 * @return The generated environment
+	 */
 	public static Environment generateEnvironment(JsonEnvironmentalFactorList factorList) {
 		System.out.println("Making a new environment");
 		EnvironmentalFactor timeFactor, terrainFactor, temperatureFactor, weatherFactor;
@@ -78,10 +92,21 @@ public class Environment {
 		return new Environment(timeFactor, terrainFactor, temperatureFactor, weatherFactor, features);
 	}
 	
+	/**
+	 * Sets all factors in the list to their default probabilities
+	 *
+	 * @param factorList The list
+	 */
 	static void defaultFactorProbabilities(List<EnvironmentalFactor> factorList) {
 		factorList.forEach(x -> x.currentProbability = x.defaultProbability == -1.0 ? 1.0 / factorList.size() : x.defaultProbability);
 	}
 	
+	/**
+	 * Applies changes to the factor list from the newly added factors
+	 *
+	 * @param factorList      The factor list
+	 * @param existingFactors The factors recently added
+	 */
 	static void processFactorList(List<EnvironmentalFactor> factorList, EnvironmentalFactor... existingFactors) {
 		for (EnvironmentalFactor f : factorList) {
 			for (EnvironmentalFactor existingFactor : existingFactors) {
@@ -94,6 +119,12 @@ public class Environment {
 		}
 	}
 	
+	/**
+	 * Chooses a random factor from the list, based on the weighted random values
+	 *
+	 * @param environmentalFactors The list of factors
+	 * @return The selected factor
+	 */
 	static EnvironmentalFactor chooseWeightedRandom(List<EnvironmentalFactor> environmentalFactors) {
 		double randomSum = environmentalFactors.stream().mapToDouble(x -> x.currentProbability).sum();
 		double randomNumber = Math.random() * randomSum;

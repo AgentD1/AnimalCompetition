@@ -1,5 +1,8 @@
 package tech.jaboc.animalcompetition.animal;
 
+/**
+ * An abstract class that represents a type of attack that an animal can use. It has accuracy and damage.
+ */
 public abstract class AttackModule extends AnimalModule {
 	public String name;
 	
