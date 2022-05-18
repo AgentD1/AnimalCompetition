@@ -114,11 +114,32 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			baseAnimals.add(animal);
+			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			if (match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
 			animalStrings.getValue().add(animal.species);
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		Button userAnimalEditButton = new Button("E");
+		Button userAnimalEditButton = new Button("Edit");
+		userAnimalEditButton.setOnAction(e -> {
+			Animal a = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal animal = askUserForAnimal(new Stage(), a);
+			if (animal == null) return;
+			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			if (match == null) {
+				baseAnimals.add(animal);
+				animalStrings.getValue().add(animal.species);
+			} else {
+				baseAnimals.remove(match);
+				baseAnimals.add(animal);
+			}
+			userAnimalChoiceBox.getSelectionModel().select(animal.species);
+		});
 		userAnimalBox.getChildren().addAll(userAnimalLabel, userAnimalChoiceBox, userAnimalAddNewButton, userAnimalEditButton);
 		
 		HBox opponentAnimalBox = new HBox();
@@ -143,7 +164,7 @@ public class AnimalMain extends Application {
 			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
-		Button opponentAnimalEditButton = new Button("E");
+		Button opponentAnimalEditButton = new Button("Edit");
 		opponentAnimalEditButton.setOnAction(e -> {
 			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
