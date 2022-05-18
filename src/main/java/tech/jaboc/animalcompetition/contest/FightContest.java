@@ -11,6 +11,9 @@ public class FightContest extends Contest {
 	public Optional<Animal> resolve(Animal animal1, Animal animal2, Environment environment, PrintStream output) {
 		boolean playerTurn = true;
 		
+		animal1.getModuleOfType(BaseModule.class).fullyHeal();
+		animal2.getModuleOfType(BaseModule.class).fullyHeal();
+		
 		Random r = new Random();
 		
 		while (animal1.getModuleOfType(BaseModule.class).currentHealth > 0 && animal2.getModuleOfType(BaseModule.class).currentHealth > 0) {
@@ -37,12 +40,6 @@ public class FightContest extends Contest {
 			}
 			
 			playerTurn = !playerTurn;
-			try {
-				//noinspection BusyWait
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
 		}
 		
 		double animal1Health = animal1.getModuleOfType(BaseModule.class).currentHealth;
