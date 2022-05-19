@@ -1,5 +1,7 @@
 package tech.jaboc.animalcompetition.gui;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
 import javafx.beans.property.*;
@@ -67,6 +69,11 @@ public class AnimalMain extends Application {
 	public Scene createMainScene(Stage stage) {
 		BorderPane root = new BorderPane();
 		
+		AtomicReference<List<Animal>> baseAnimals = new AtomicReference<>(new ArrayList<>(getBaseAnimals()));
+		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.get().stream().map(a -> a.species).toList()));
+
+		
+		
 		MenuBar menuBar = new MenuBar();
 		
 		Menu fileMenu = new Menu("File");
@@ -89,7 +96,40 @@ public class AnimalMain extends Application {
 		
 		fileMenu.getItems().addAll(aboutItem, exitItem);
 		
-		menuBar.getMenus().add(fileMenu);
+		Menu editMenu = new Menu("Edit");
+		MenuItem saveItem = new MenuItem("Save Animals");
+		
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON file", "*.json"));
+		fileChooser.setInitialFileName("animals.json");
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setDefaultPrettyPrinter(new DefaultPrettyPrinter());
+		
+		saveItem.setOnAction(e -> {
+			File selectedFile = fileChooser.showSaveDialog(new Stage());
+			try {
+				mapper.writerWithDefaultPrettyPrinter().writeValue(selectedFile, baseAnimals);
+			} catch (IOException ex) {
+				showErrorDialogue(ex);
+			}
+		});
+		
+		MenuItem loadItem = new MenuItem("Load Animals");
+		loadItem.setOnAction(e -> {
+			File selectedFile = fileChooser.showOpenDialog(new Stage());
+			try {
+				baseAnimals.set(mapper.readValue(selectedFile, new TypeReference<ArrayList<Animal>>() {}));
+				animalStrings.getValue().clear();
+				animalStrings.getValue().addAll(baseAnimals.get().stream().map(a -> a.species).toList());
+			} catch (IOException ex) {
+				showErrorDialogue(ex);
+			}
+		});
+		
+		editMenu.getItems().addAll(saveItem, loadItem);
+		
+		menuBar.getMenus().addAll(fileMenu, editMenu);
 		
 		root.setTop(menuBar);
 		
@@ -100,8 +140,6 @@ public class AnimalMain extends Application {
 		Label titleLabel = new Label("Welcome to the Friendly Fighting Arena (FFA for short)");
 		titleLabel.setFont(Font.font(24.0));
 		
-		List<Animal> baseAnimals = new ArrayList<>(getBaseAnimals());
-		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.stream().map(a -> a.species).toList()));
 		
 		HBox userAnimalBox = new HBox();
 		userAnimalBox.alignmentProperty().set(Pos.CENTER_LEFT);
@@ -114,29 +152,28 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
-				animalStrings.getValue().add(animal.species);
+				baseAnimals.get().add(animal);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			animalStrings.getValue().add(animal.species);
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
 		Button userAnimalEditButton = new Button("Edit");
 		userAnimalEditButton.setOnAction(e -> {
-			Animal a = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal a = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
+				baseAnimals.get().add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
@@ -153,29 +190,28 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
-				animalStrings.getValue().add(animal.species);
+				baseAnimals.get().add(animal);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
 		Button opponentAnimalEditButton = new Button("Edit");
 		opponentAnimalEditButton.setOnAction(e -> {
-			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal a = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
+				baseAnimals.get().add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
@@ -242,8 +278,8 @@ public class AnimalMain extends Application {
 			Animal userAnimal;
 			Animal opponentAnimal;
 			try {
-				userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-				opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+				userAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+				opponentAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
 			} catch (Exception ignored) {
 				new Alert(Alert.AlertType.ERROR, "You must select an animal for both you and your opponent!").showAndWait();
 				return;
@@ -260,13 +296,12 @@ public class AnimalMain extends Application {
 				@Override
 				public void write(int b) {
 					if (b == '\n') {
-						currentLabel = new Label();
 						fightTextContainer.getChildren().add(currentLabel);
 						fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+						currentLabel = new Label();
 					} else {
-						if (currentLabel == null) {
+						if(currentLabel == null) {
 							currentLabel = new Label();
-							fightTextContainer.getChildren().add(currentLabel);
 						}
 						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
 					}
@@ -418,7 +453,7 @@ public class AnimalMain extends Application {
 		
 		HBox otherTraitsBox = new HBox();
 		otherTraitsBox.alignmentProperty().set(Pos.CENTER_LEFT);
-		Label otherTraitsLabel = new Label("Pick the optional traits you want: ");
+		Label otherTraitsLabel = new Label("Pick the optional traits you want: \n(Use CTRL to select multiple)");
 		ListView<String> otherTraitsListView = new ListView<>();
 		otherTraitsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		otherTraitsListView.getItems().addAll(otherTraits.stream().map(t -> t.name).toList());
@@ -543,5 +578,13 @@ public class AnimalMain extends Application {
 		
 		
 		return animals;
+	}
+	
+	static void showErrorDialogue(Exception e) {
+		StringWriter writer = new StringWriter();
+		PrintWriter out = new PrintWriter(writer);
+		e.printStackTrace(out);
+		String output = writer.toString();
+		new Alert(Alert.AlertType.ERROR, "An error occurred!\n" + output).showAndWait();
 	}
 }

@@ -46,7 +46,6 @@ public class Environment {
 	 * @return The generated environment
 	 */
 	public static Environment generateEnvironment(JsonEnvironmentalFactorList factorList) {
-		System.out.println("Making a new environment");
 		EnvironmentalFactor timeFactor, terrainFactor, temperatureFactor, weatherFactor;
 		List<EnvironmentalFactor> features = new ArrayList<>();
 		
