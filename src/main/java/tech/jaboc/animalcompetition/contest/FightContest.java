@@ -19,24 +19,30 @@ public class FightContest extends Contest {
 		while (animal1.getModuleOfType(BaseModule.class).currentHealth > 0 && animal2.getModuleOfType(BaseModule.class).currentHealth > 0) {
 			Animal aggressor = playerTurn ? animal1 : animal2;
 			Animal victim = playerTurn ? animal2 : animal1;
+			
+			String aggressorName = aggressor.species;
+			if (aggressorName.equals(victim.species)) aggressorName += (aggressor == animal1 ? " 1" : " 2");
+			String victimName = victim.species;
+			if (victimName.equals(aggressor.species)) victimName += (victim == animal1 ? " 1" : " 2");
+			
 			List<AttackModule> attacks = aggressor.getModulesOfType(AttackModule.class);
 			attacks = attacks.stream().filter(a -> a.canHitAnimal(victim)).toList();
 			
 			if (attacks.size() == 0) {
-				output.println(aggressor.name + " has no attacks that can hit!");
+				output.println((aggressor == animal1 ? "Player" : "Opponent") + " has no attacks that can hit!");
 				break;
 			}
 			
 			AttackModule randomAttack = attacks.get(r.nextInt(0, attacks.size()));
 			
-			output.printf("%s used %s!\n", aggressor.name, randomAttack.name);
+			output.printf("%s used %s!\n", aggressorName, randomAttack.name);
 			
 			AttackModule.AttackResult attackResult = randomAttack.attackAnimal(victim);
 			
 			if (attackResult.hit()) {
-				output.printf(aggressor.name + " hit for %s damage.\n", attackResult.damage());
+				output.printf(aggressorName + " hit for %s damage.\n", attackResult.damage());
 			} else {
-				output.println(aggressor.name + " missed lol");
+				output.println(aggressorName + " missed lol");
 			}
 			
 			playerTurn = !playerTurn;

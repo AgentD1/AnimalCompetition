@@ -245,7 +245,7 @@ public class AnimalMain extends Application {
 				userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
 				opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
 			} catch (Exception ignored) {
-				new Alert(Alert.AlertType.ERROR, "You must do the thing!!!").showAndWait();
+				new Alert(Alert.AlertType.ERROR, "You must select an animal for both you and your opponent!").showAndWait();
 				return;
 			}
 			
@@ -254,7 +254,7 @@ public class AnimalMain extends Application {
 			
 			fightTextContainer.getChildren().clear();
 			
-			contest.resolve(userAnimal, opponentAnimal, environment.get(), new PrintStream(new OutputStream() {
+			PrintStream fightOutputStream = new PrintStream(new OutputStream() {
 				Label currentLabel;
 				
 				@Override
@@ -271,7 +271,19 @@ public class AnimalMain extends Application {
 						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
 					}
 				}
-			}));
+			});
+			
+			Optional<Animal> winner = contest.resolve(userAnimal, opponentAnimal, environment.get(), fightOutputStream);
+			
+			if (winner.isEmpty()) {
+				fightOutputStream.println("The fight was a draw!");
+			} else {
+				if (winner.get() == userAnimal) {
+					fightOutputStream.println("You won!");
+				} else {
+					fightOutputStream.println("You lost...");
+				}
+			}
 			
 			fightTextScrollPane.setVvalue(Double.MAX_VALUE);
 			
@@ -317,16 +329,6 @@ public class AnimalMain extends Application {
 		
 		Label label = new Label("Let's create an animal!!");
 		label.setFont(Font.font(24.0));
-		
-		//region Name Field
-		HBox nameBox = new HBox();
-		nameBox.alignmentProperty().set(Pos.CENTER_LEFT);
-		Label nameLabel = new Label("Enter the name of your animal: ");
-		TextField nameField = new TextField();
-		nameField.setPromptText("Name here...");
-		nameField.setText(defaults == null ? "" : defaults.name);
-		nameBox.getChildren().addAll(nameLabel, nameField);
-		//endregion
 		
 		//region Species Field
 		HBox speciesBox = new HBox();
@@ -431,16 +433,12 @@ public class AnimalMain extends Application {
 		
 		//endregion
 		
-		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular non-final variables in lambdas because of some reason. Java moment
+		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular non-final variables in lambdas because of some reason. Java moment 💀
 		
 		Scene scene = new Scene(layout, 600, 400);
 		
 		Button button = new Button("Create!");
 		button.setOnAction(e -> {
-			if (nameField.getText() == null || nameField.getText().length() == 0 || nameField.getText().length() > 64) {
-				new Alert(Alert.AlertType.ERROR, "Name must be between 1 and 64 characters!").showAndWait();
-				return;
-			}
 			if (speciesField.getText() == null || speciesField.getText().length() == 0 || speciesField.getText().length() > 64) {
 				new Alert(Alert.AlertType.ERROR, "Species must be between 1 and 64 characters!").showAndWait();
 				return;
@@ -450,7 +448,6 @@ public class AnimalMain extends Application {
 				return;
 			}
 			animal.set(new Animal());
-			animal.get().name = nameField.getText();
 			animal.get().species = speciesField.getText();
 			animal.get().addTrait(availableBaseTraits.stream().filter(t -> t.name.equals(baseTraitChoiceBox.getValue())).findFirst().orElseThrow());
 			for (Trait trait : otherTraitsListView.getSelectionModel().getSelectedItems().stream().map(s -> otherTraits.stream().filter(t -> t.name.equals(s)).findFirst().orElseThrow()).toList()) {
@@ -461,7 +458,7 @@ public class AnimalMain extends Application {
 			stage.close();
 		});
 		
-		layout.getChildren().addAll(label, nameBox, speciesBox, baseTraitBox, otherTraitsBox, button);
+		layout.getChildren().addAll(label, speciesBox, baseTraitBox, otherTraitsBox, button);
 		
 		
 		stage.setScene(scene);
