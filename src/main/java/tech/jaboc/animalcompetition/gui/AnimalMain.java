@@ -47,10 +47,13 @@ public class AnimalMain extends Application {
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
 		
-		System.out.println(new File("src/main/resources/environmentalFactors.json").getAbsolutePath());
-		
-		factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
-				Environment.JsonEnvironmentalFactorList.class);
+		try {
+			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
+					Environment.JsonEnvironmentalFactorList.class);
+		} catch(FileNotFoundException e) {
+			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"),
+					Environment.JsonEnvironmentalFactorList.class);
+		}
 		
 		
 		Scene scene = createMainScene(stage);
