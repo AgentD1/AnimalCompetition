@@ -50,7 +50,7 @@ public class AnimalMain extends Application {
 		try {
 			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
 					Environment.JsonEnvironmentalFactorList.class);
-		} catch(FileNotFoundException e) {
+		} catch(FileNotFoundException e) { // When in a jar file
 			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"),
 					Environment.JsonEnvironmentalFactorList.class);
 		}
