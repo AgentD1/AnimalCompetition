@@ -14,9 +14,17 @@ public class FightContest extends Contest {
 		animal1.getModuleOfType(BaseModule.class).fullyHeal();
 		animal2.getModuleOfType(BaseModule.class).fullyHeal();
 		
+		System.out.println(animal1.getModuleOfType(DefenseModule.class).getDamageResistance());
+		
 		Random r = new Random();
 		
+		int turnNumber = 1;
+		
 		while (animal1.getModuleOfType(BaseModule.class).currentHealth > 0 && animal2.getModuleOfType(BaseModule.class).currentHealth > 0) {
+			if (playerTurn) {
+				output.printf("\n--- Turn %d ---\n\n", turnNumber);
+			}
+			
 			Animal aggressor = playerTurn ? animal1 : animal2;
 			Animal victim = playerTurn ? animal2 : animal1;
 			
@@ -42,10 +50,20 @@ public class FightContest extends Contest {
 			if (attackResult.hit()) {
 				output.printf(aggressorName + " hit for %s damage.\n", attackResult.damage());
 			} else {
-				output.println(aggressorName + " missed lol");
+				output.printf(victimName + " dodged the attack!\n");
 			}
 			
 			playerTurn = !playerTurn;
+			
+			if (playerTurn) {
+				turnNumber++;
+				
+				if (turnNumber == 201) {
+					output.println("--- After 100 turns, neither animal has won. ---\n");
+				}
+			} else {
+				output.printf("\n");
+			}
 		}
 		
 		double animal1Health = animal1.getModuleOfType(BaseModule.class).currentHealth;
@@ -60,5 +78,6 @@ public class FightContest extends Contest {
 		} else {
 			return Optional.of(animal2);
 		}
+		
 	}
 }

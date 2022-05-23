@@ -43,6 +43,7 @@ public class AnimalMain extends Application {
 		new BeakAttackModule();
 		new ClawAttackModule();
 		new BiteAttackModule();
+		new DefenseModule();
 		
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
@@ -50,7 +51,7 @@ public class AnimalMain extends Application {
 		try {
 			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
 					Environment.JsonEnvironmentalFactorList.class);
-		} catch(FileNotFoundException e) { // When in a jar file
+		} catch (FileNotFoundException e) { // When in a jar file
 			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"),
 					Environment.JsonEnvironmentalFactorList.class);
 		}
@@ -74,7 +75,6 @@ public class AnimalMain extends Application {
 		
 		AtomicReference<List<Animal>> baseAnimals = new AtomicReference<>(new ArrayList<>(getBaseAnimals()));
 		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.get().stream().map(a -> a.species).toList()));
-
 		
 		
 		MenuBar menuBar = new MenuBar();
@@ -122,7 +122,7 @@ public class AnimalMain extends Application {
 		loadItem.setOnAction(e -> {
 			File selectedFile = fileChooser.showOpenDialog(new Stage());
 			try {
-				baseAnimals.set(mapper.readValue(selectedFile, new TypeReference<ArrayList<Animal>>() {}));
+				baseAnimals.set(mapper.readValue(selectedFile, new TypeReference<ArrayList<Animal>>() { }));
 				animalStrings.getValue().clear();
 				animalStrings.getValue().addAll(baseAnimals.get().stream().map(a -> a.species).toList());
 			} catch (IOException ex) {
@@ -299,11 +299,13 @@ public class AnimalMain extends Application {
 				@Override
 				public void write(int b) {
 					if (b == '\n') {
-						fightTextContainer.getChildren().add(currentLabel);
-						fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+						if (currentLabel != null) {
+							fightTextContainer.getChildren().add(currentLabel);
+							fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+						}
 						currentLabel = new Label();
 					} else {
-						if(currentLabel == null) {
+						if (currentLabel == null) {
 							currentLabel = new Label();
 						}
 						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
@@ -311,7 +313,14 @@ public class AnimalMain extends Application {
 				}
 			});
 			
+			userAnimal.addEnvironment(environment.get());
+			opponentAnimal.addEnvironment(environment.get());
+			
 			Optional<Animal> winner = contest.resolve(userAnimal, opponentAnimal, environment.get(), fightOutputStream);
+			
+			
+			userAnimal.removeEnvironment(environment.get());
+			opponentAnimal.removeEnvironment(environment.get());
 			
 			if (winner.isEmpty()) {
 				fightOutputStream.println("The fight was a draw!");
@@ -382,7 +391,6 @@ public class AnimalMain extends Application {
 		List<Trait> availableBaseTraits = List.of(
 				new Trait("Lion Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -393,7 +401,6 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Eagle Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
 						new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
@@ -405,7 +412,6 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Cheetah Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -442,11 +448,9 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Violent", new ReflectiveModifier[] {
 						new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
-						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
 				}),
 				new Trait("Glass Cannon", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
-						new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
 						new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
 				}),
 				new Trait("Long Legs", new ReflectiveModifier[] {
@@ -521,7 +525,7 @@ public class AnimalMain extends Application {
 		lion.species = "Lion";
 		lion.addTrait(new Trait("Lion Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -532,7 +536,6 @@ public class AnimalMain extends Application {
 		}));
 		lion.addTrait(new Trait("Violent", new ReflectiveModifier[] {
 				new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
-				new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
 		}));
 		animals.add(lion);
 		
@@ -541,7 +544,7 @@ public class AnimalMain extends Application {
 		eagle.species = "Eagle";
 		eagle.addTrait(new Trait("Eagle Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
 				new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
@@ -556,7 +559,6 @@ public class AnimalMain extends Application {
 		}));
 		eagle.addTrait(new Trait("Glass Cannon", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
-				new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
 				new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
 		}));
 		animals.add(eagle);
@@ -565,7 +567,7 @@ public class AnimalMain extends Application {
 		cheetah.species = "Cheetah";
 		cheetah.addTrait(new Trait("Cheetah Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),

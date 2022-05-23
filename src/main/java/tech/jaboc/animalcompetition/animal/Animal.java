@@ -100,7 +100,6 @@ public class Animal {
 						double value = field.getDouble(m);
 						if (c.multiplier()) {
 							if (other.containsKey(c.name())) { // Use format: name: value xMultiplier% = finalValue
-								// TODO: change this to just display the whole number later
 								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, other.get(name), value * 100, other.get(name) * value));
 								other.remove(name);
 							} else {
