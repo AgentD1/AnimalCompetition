@@ -112,6 +112,9 @@ public class AnimalMain extends Application {
 		saveItem.setOnAction(e -> {
 			File selectedFile = fileChooser.showSaveDialog(new Stage());
 			try {
+				if(selectedFile == null) {
+					return;
+				}
 				mapper.writerWithDefaultPrettyPrinter().writeValue(selectedFile, baseAnimals);
 			} catch (IOException ex) {
 				showErrorDialogue(ex);

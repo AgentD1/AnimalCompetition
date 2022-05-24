@@ -14,11 +14,15 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>tech.jaboc.animalcompetition.gui.AnimalMain</mainClass>
+                    <mainClass>tech.jaboc.animalcompetition.gui.Start</mainClass>
+                    <jlinkImageName>AnimalCompetition</jlinkImageName>
+                    <launcher>launcher</launcher>
+                    <mainClass>AnimalCompetition/tech.jaboc.animalcompetition.gui.Start</mainClass>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+
                 <configuration>
                     <source>17</source>
                     <target>17</target>
