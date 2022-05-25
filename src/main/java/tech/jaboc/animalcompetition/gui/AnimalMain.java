@@ -48,11 +48,12 @@ public class AnimalMain extends Application {
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
 		
+		// Load the factor list from the file. Its location depends on whether this is a jar file or not.
 		try {
-			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
+			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"), // jarn't
 					Environment.JsonEnvironmentalFactorList.class);
-		} catch (FileNotFoundException e) { // When in a jar file
-			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"),
+		} catch (FileNotFoundException e) {
+			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"), // jar
 					Environment.JsonEnvironmentalFactorList.class);
 		}
 		
