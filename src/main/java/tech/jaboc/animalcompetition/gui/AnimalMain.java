@@ -3,10 +3,11 @@ package tech.jaboc.animalcompetition.gui;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Application;
+import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
+import javafx.concurrent.Task;
 import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -20,7 +21,7 @@ import tech.jaboc.animalcompetition.environment.Environment;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
 /**
  * The GUI class, which controls the GUI.
@@ -37,7 +38,7 @@ public class AnimalMain extends Application {
 	 */
 	@Override
 	public void start(Stage stage) throws Exception {
-		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
+		new LandMovementModule(); // Initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
 		new BeakAttackModule();
@@ -113,7 +114,7 @@ public class AnimalMain extends Application {
 		saveItem.setOnAction(e -> {
 			File selectedFile = fileChooser.showSaveDialog(new Stage());
 			try {
-				if(selectedFile == null) {
+				if (selectedFile == null) {
 					return;
 				}
 				mapper.writerWithDefaultPrettyPrinter().writeValue(selectedFile, baseAnimals);
@@ -279,69 +280,15 @@ public class AnimalMain extends Application {
 		VBox.setVgrow(scrollPaneContainer, Priority.ALWAYS);
 		fightTextScrollPane.prefHeightProperty().bind(scrollPaneContainer.heightProperty());
 		
-		Button startButton = new Button("Fight!!!");
-		startButton.setOnAction(e -> {
-			Contest contest = new FightContest();
-			Animal userAnimal;
-			Animal opponentAnimal;
-			try {
-				userAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-				opponentAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-			} catch (Exception ignored) {
-				new Alert(Alert.AlertType.ERROR, "You must select an animal for both you and your opponent!").showAndWait();
-				return;
-			}
-			
-			System.out.println(userAnimal);
-			System.out.println(opponentAnimal);
-			
-			fightTextContainer.getChildren().clear();
-			
-			PrintStream fightOutputStream = new PrintStream(new OutputStream() {
-				Label currentLabel;
-				
-				@Override
-				public void write(int b) {
-					if (b == '\n') {
-						if (currentLabel != null) {
-							fightTextContainer.getChildren().add(currentLabel);
-							fightTextScrollPane.setVvalue(Double.MAX_VALUE);
-						}
-						currentLabel = new Label();
-					} else {
-						if (currentLabel == null) {
-							currentLabel = new Label();
-						}
-						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
-					}
-				}
-			});
-			
-			userAnimal.addEnvironment(environment.get());
-			opponentAnimal.addEnvironment(environment.get());
-			
-			Optional<Animal> winner = contest.resolve(userAnimal, opponentAnimal, environment.get(), fightOutputStream);
-			
-			
-			userAnimal.removeEnvironment(environment.get());
-			opponentAnimal.removeEnvironment(environment.get());
-			
-			if (winner.isEmpty()) {
-				fightOutputStream.println("The fight was a draw!");
-			} else {
-				if (winner.get() == userAnimal) {
-					fightOutputStream.println("You won!");
-				} else {
-					fightOutputStream.println("You lost...");
-				}
-			}
-			
-			fightTextScrollPane.setVvalue(Double.MAX_VALUE);
-			
-			System.out.println("Done");
-		});
+		Button fightButton = new Button("Fight!!!");
+		Button fightFastButton = new Button("Fight Fast");
 		
-		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, environmentDisplayGrid, startButton, scrollPaneContainer);
+		fightButton.setOnAction(e -> startFight(baseAnimals, userAnimalChoiceBox, opponentAnimalChoiceBox, environment, fightTextScrollPane, fightTextContainer, false));
+		fightFastButton.setOnAction(e -> startFight(baseAnimals, userAnimalChoiceBox, opponentAnimalChoiceBox, environment, fightTextScrollPane, fightTextContainer, true));
+		
+		HBox fightButtonBox = new HBox(fightButton, fightFastButton);
+		
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, environmentDisplayGrid, fightButtonBox, scrollPaneContainer);
 		
 		root.setCenter(layout);
 		
@@ -353,6 +300,104 @@ public class AnimalMain extends Application {
 		stage.sizeToScene();
 		
 		return scene;
+	}
+	
+	AtomicBoolean fightRunning = new AtomicBoolean(false);
+	Thread currentFight = null;
+	
+	private void startFight(AtomicReference<List<Animal>> baseAnimals, ChoiceBox<String> userAnimalChoiceBox, ChoiceBox<String> opponentAnimalChoiceBox, AtomicReference<Environment> environment, ScrollPane fightTextScrollPane, VBox fightTextContainer, boolean fast) {
+		if (fightRunning.get()) {
+			currentFight.interrupt();
+			return;
+		}
+		
+		Contest contest = new FightContest();
+		Animal userAnimal;
+		Animal opponentAnimal;
+		try {
+			userAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			opponentAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+		} catch (Exception ignored) {
+			new Alert(Alert.AlertType.ERROR, "You must select an animal for both you and your opponent!").showAndWait();
+			return;
+		}
+		
+		System.out.println(userAnimal);
+		System.out.println(opponentAnimal);
+		
+		fightTextContainer.getChildren().clear();
+		
+		PrintStream fightOutputStream = new PrintStream(new OutputStream() {
+			Label currentLabel;
+			
+			boolean ourFast = fast;
+			
+			String currentText = "";
+			
+			@Override
+			public void write(int b) {
+				if (b == '\n') {
+					if (currentLabel != null) {
+						final String text = currentText;
+						final Label finalLabel = currentLabel;
+						Platform.runLater(() -> {
+							finalLabel.setText(text);
+							fightTextContainer.getChildren().add(finalLabel);
+							fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+						});
+						
+						currentText = "";
+						
+						if (!ourFast) {
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
+								ourFast = true;
+							}
+						}
+					}
+					currentLabel = new Label();
+				} else {
+					currentText += new String(Character.toChars(b));
+				}
+			}
+		});
+		
+		userAnimal.addEnvironment(environment.get());
+		opponentAnimal.addEnvironment(environment.get());
+		
+		Task<Integer> task = new Task<>() {
+			@Override
+			protected Integer call() {
+				Optional<Animal> winner = contest.resolve(userAnimal, opponentAnimal, environment.get(), fightOutputStream);
+				
+				userAnimal.removeEnvironment(environment.get());
+				opponentAnimal.removeEnvironment(environment.get());
+				
+				if (winner.isEmpty()) {
+					fightOutputStream.println("The fight was a draw!");
+				} else {
+					if (winner.get() == userAnimal) {
+						fightOutputStream.println("You won!");
+					} else {
+						fightOutputStream.println("You lost...");
+					}
+				}
+				
+				fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+				
+				System.out.println("Done");
+				fightRunning.set(false);
+				return 0;
+			}
+		};
+		
+		Thread executorThread = new Thread(task);
+		executorThread.setDaemon(true);
+		
+		currentFight = executorThread;
+		fightRunning.set(true);
+		executorThread.start();
 	}
 	
 	/**
