@@ -26,7 +26,6 @@ public class AnimalDeserializer extends StdDeserializer<Animal> {
 		
 		Animal a = new Animal();
 		
-		a.name = node.get("name").textValue();
 		a.species = node.get("species").textValue();
 		
 		for (Iterator<JsonNode> it = node.get("modules").elements(); it.hasNext(); ) {

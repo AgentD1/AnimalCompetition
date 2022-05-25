@@ -23,7 +23,6 @@ public class AnimalSerializer extends StdSerializer<Animal> {
 	public void serialize(Animal a, JsonGenerator jgen, SerializerProvider ser) throws IOException {
 		jgen.writeStartObject();
 		
-		jgen.writeStringField("name", a.name);
 		jgen.writeStringField("species", a.species);
 		
 		jgen.writeArrayFieldStart("modules");

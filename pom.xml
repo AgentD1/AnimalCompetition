@@ -6,7 +6,7 @@
 
     <groupId>tech.jaboc</groupId>
     <artifactId>AnimalCompetition</artifactId>
-    <version>1.0-SNAPSHOT</version> <!--TODO: Change the version number before releasing-->
+    <version>Release 1.0</version>
     <build>
         <plugins>
             <plugin>
@@ -14,7 +14,18 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>tech.jaboc.animalcompetition.gui.AnimalMain</mainClass>
+                    <mainClass>tech.jaboc.animalcompetition.gui.Start</mainClass>
+                    <jlinkImageName>AnimalCompetition</jlinkImageName>
+                    <launcher>launcher</launcher>
+                    <mainClass>AnimalCompetition/tech.jaboc.animalcompetition.gui.Start</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
         </plugins>

@@ -18,16 +18,21 @@ public abstract class AttackModule extends AnimalModule {
 	public double damageRandomRange;
 	
 	public boolean canHitAnimal(Animal animal) {
-		return true; // TODO: add attack range when animals have locations later
+		return true;
 	}
 	
 	public AttackResult attackAnimal(Animal animal) {
-		double animalDodge = animal.getFromModuleIfNotNullElse(DefenseModule.class, DefenseModule::getDodge, 0.0);
+		double animalDodge = animal.getFromModuleIfNotNullElse(DefenseModule.class, x -> x.getDodge(animal), 0.0);
 		
 		double hit = Math.random() * baseAccuracy;
 		
-		if(hit > animalDodge) {
+		if (hit > animalDodge) {
 			double damage = (Math.random() * damageRandomRange + baseDamage) * damageMultiplier;
+			double damageResistance = animal.getFromModuleIfNotNullElse(DefenseModule.class, DefenseModule::getDamageResistance, 0.0);
+			if (damageResistance == 0.0) { // Animal has no defense, is probably incapacitated
+				damageResistance = 0.0001;
+			}
+			damage /= damageResistance;
 			animal.getModuleOfType(BaseModule.class).takeDamage(damage);
 			return new AttackResult(true, damage);
 		} else {
@@ -35,7 +40,7 @@ public abstract class AttackModule extends AnimalModule {
 		}
 	}
 	
-	public record AttackResult(boolean hit, double damage) {}
+	public record AttackResult(boolean hit, double damage) { }
 	
 	static {
 		registerModule(AttackModule.class);

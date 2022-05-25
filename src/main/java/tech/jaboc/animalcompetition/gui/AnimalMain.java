@@ -1,10 +1,13 @@
 package tech.jaboc.animalcompetition.gui;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Application;
+import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
+import javafx.concurrent.Task;
 import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,7 +21,7 @@ import tech.jaboc.animalcompetition.environment.Environment;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
 /**
  * The GUI class, which controls the GUI.
@@ -35,20 +38,25 @@ public class AnimalMain extends Application {
 	 */
 	@Override
 	public void start(Stage stage) throws Exception {
-		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
+		new LandMovementModule(); // Initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
 		new BeakAttackModule();
 		new ClawAttackModule();
 		new BiteAttackModule();
+		new DefenseModule();
 		
 		properties = new Properties();
 		properties.load(getClass().getClassLoader().getResourceAsStream(".properties"));
 		
-		System.out.println(new File("src/main/resources/environmentalFactors.json").getAbsolutePath());
-		
-		factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"),
-				Environment.JsonEnvironmentalFactorList.class);
+		// Load the factor list from the file. Its location depends on whether this is a jar file or not.
+		try {
+			factorList = new ObjectMapper().readValue(new File("src/main/resources/environmentalFactors.json"), // jarn't
+					Environment.JsonEnvironmentalFactorList.class);
+		} catch (FileNotFoundException e) {
+			factorList = new ObjectMapper().readValue(new File("environmentalFactors.json"), // jar
+					Environment.JsonEnvironmentalFactorList.class);
+		}
 		
 		
 		Scene scene = createMainScene(stage);
@@ -66,6 +74,10 @@ public class AnimalMain extends Application {
 	 */
 	public Scene createMainScene(Stage stage) {
 		BorderPane root = new BorderPane();
+		
+		AtomicReference<List<Animal>> baseAnimals = new AtomicReference<>(new ArrayList<>(getBaseAnimals()));
+		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.get().stream().map(a -> a.species).toList()));
+		
 		
 		MenuBar menuBar = new MenuBar();
 		
@@ -89,7 +101,43 @@ public class AnimalMain extends Application {
 		
 		fileMenu.getItems().addAll(aboutItem, exitItem);
 		
-		menuBar.getMenus().add(fileMenu);
+		Menu editMenu = new Menu("Edit");
+		MenuItem saveItem = new MenuItem("Save Animals");
+		
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON file", "*.json"));
+		fileChooser.setInitialFileName("animals.json");
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setDefaultPrettyPrinter(new DefaultPrettyPrinter());
+		
+		saveItem.setOnAction(e -> {
+			File selectedFile = fileChooser.showSaveDialog(new Stage());
+			try {
+				if (selectedFile == null) {
+					return;
+				}
+				mapper.writerWithDefaultPrettyPrinter().writeValue(selectedFile, baseAnimals);
+			} catch (IOException ex) {
+				showErrorDialogue(ex);
+			}
+		});
+		
+		MenuItem loadItem = new MenuItem("Load Animals");
+		loadItem.setOnAction(e -> {
+			File selectedFile = fileChooser.showOpenDialog(new Stage());
+			try {
+				baseAnimals.set(mapper.readValue(selectedFile, new TypeReference<ArrayList<Animal>>() { }));
+				animalStrings.getValue().clear();
+				animalStrings.getValue().addAll(baseAnimals.get().stream().map(a -> a.species).toList());
+			} catch (IOException ex) {
+				showErrorDialogue(ex);
+			}
+		});
+		
+		editMenu.getItems().addAll(saveItem, loadItem);
+		
+		menuBar.getMenus().addAll(fileMenu, editMenu);
 		
 		root.setTop(menuBar);
 		
@@ -100,8 +148,6 @@ public class AnimalMain extends Application {
 		Label titleLabel = new Label("Welcome to the Friendly Fighting Arena (FFA for short)");
 		titleLabel.setFont(Font.font(24.0));
 		
-		List<Animal> baseAnimals = new ArrayList<>(getBaseAnimals());
-		ObservableValue<ObservableList<String>> animalStrings = new SimpleObjectProperty<>(FXCollections.observableArrayList(baseAnimals.stream().map(a -> a.species).toList()));
 		
 		HBox userAnimalBox = new HBox();
 		userAnimalBox.alignmentProperty().set(Pos.CENTER_LEFT);
@@ -114,29 +160,28 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
-				animalStrings.getValue().add(animal.species);
+				baseAnimals.get().add(animal);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			animalStrings.getValue().add(animal.species);
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
 		Button userAnimalEditButton = new Button("Edit");
 		userAnimalEditButton.setOnAction(e -> {
-			Animal a = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal a = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
+				baseAnimals.get().add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			userAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
@@ -153,29 +198,28 @@ public class AnimalMain extends Application {
 			Stage animalStage = new Stage();
 			Animal animal = askUserForAnimal(animalStage);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a -> a.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
-				animalStrings.getValue().add(animal.species);
+				baseAnimals.get().add(animal);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			animalStrings.getValue().add(animal.species);
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
 		Button opponentAnimalEditButton = new Button("Edit");
 		opponentAnimalEditButton.setOnAction(e -> {
-			Animal a = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
+			Animal a = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElse(null);
 			Animal animal = askUserForAnimal(new Stage(), a);
 			if (animal == null) return;
-			Animal match = baseAnimals.stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
+			Animal match = baseAnimals.get().stream().filter(a1 -> a1.species.equals(animal.species)).findAny().orElse(null);
 			if (match == null) {
-				baseAnimals.add(animal);
+				baseAnimals.get().add(animal);
 				animalStrings.getValue().add(animal.species);
 			} else {
-				baseAnimals.remove(match);
-				baseAnimals.add(animal);
+				baseAnimals.get().remove(match);
+				baseAnimals.get().add(animal);
 			}
 			opponentAnimalChoiceBox.getSelectionModel().select(animal.species);
 		});
@@ -236,49 +280,15 @@ public class AnimalMain extends Application {
 		VBox.setVgrow(scrollPaneContainer, Priority.ALWAYS);
 		fightTextScrollPane.prefHeightProperty().bind(scrollPaneContainer.heightProperty());
 		
-		Button startButton = new Button("Fight!!!");
-		startButton.setOnAction(e -> {
-			Contest contest = new FightContest();
-			Animal userAnimal;
-			Animal opponentAnimal;
-			try {
-				userAnimal = baseAnimals.stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-				opponentAnimal = baseAnimals.stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
-			} catch (Exception ignored) {
-				new Alert(Alert.AlertType.ERROR, "You must do the thing!!!").showAndWait();
-				return;
-			}
-			
-			System.out.println(userAnimal);
-			System.out.println(opponentAnimal);
-			
-			fightTextContainer.getChildren().clear();
-			
-			contest.resolve(userAnimal, opponentAnimal, environment.get(), new PrintStream(new OutputStream() {
-				Label currentLabel;
-				
-				@Override
-				public void write(int b) {
-					if (b == '\n') {
-						currentLabel = new Label();
-						fightTextContainer.getChildren().add(currentLabel);
-						fightTextScrollPane.setVvalue(Double.MAX_VALUE);
-					} else {
-						if (currentLabel == null) {
-							currentLabel = new Label();
-							fightTextContainer.getChildren().add(currentLabel);
-						}
-						currentLabel.setText(currentLabel.getText() + new String(Character.toChars(b)));
-					}
-				}
-			}));
-			
-			fightTextScrollPane.setVvalue(Double.MAX_VALUE);
-			
-			System.out.println("Done");
-		});
+		Button fightButton = new Button("Fight!!!");
+		Button fightFastButton = new Button("Fight Fast");
 		
-		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, environmentDisplayGrid, startButton, scrollPaneContainer);
+		fightButton.setOnAction(e -> startFight(baseAnimals, userAnimalChoiceBox, opponentAnimalChoiceBox, environment, fightTextScrollPane, fightTextContainer, false));
+		fightFastButton.setOnAction(e -> startFight(baseAnimals, userAnimalChoiceBox, opponentAnimalChoiceBox, environment, fightTextScrollPane, fightTextContainer, true));
+		
+		HBox fightButtonBox = new HBox(fightButton, fightFastButton);
+		
+		layout.getChildren().addAll(titleLabel, userAnimalBox, opponentAnimalBox, environmentBox, environmentDisplayGrid, fightButtonBox, scrollPaneContainer);
 		
 		root.setCenter(layout);
 		
@@ -290,6 +300,104 @@ public class AnimalMain extends Application {
 		stage.sizeToScene();
 		
 		return scene;
+	}
+	
+	AtomicBoolean fightRunning = new AtomicBoolean(false);
+	Thread currentFight = null;
+	
+	private void startFight(AtomicReference<List<Animal>> baseAnimals, ChoiceBox<String> userAnimalChoiceBox, ChoiceBox<String> opponentAnimalChoiceBox, AtomicReference<Environment> environment, ScrollPane fightTextScrollPane, VBox fightTextContainer, boolean fast) {
+		if (fightRunning.get()) {
+			currentFight.interrupt();
+			return;
+		}
+		
+		Contest contest = new FightContest();
+		Animal userAnimal;
+		Animal opponentAnimal;
+		try {
+			userAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(userAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+			opponentAnimal = baseAnimals.get().stream().filter(x -> x.species.equals(opponentAnimalChoiceBox.getSelectionModel().getSelectedItem())).findFirst().orElseThrow();
+		} catch (Exception ignored) {
+			new Alert(Alert.AlertType.ERROR, "You must select an animal for both you and your opponent!").showAndWait();
+			return;
+		}
+		
+		System.out.println(userAnimal);
+		System.out.println(opponentAnimal);
+		
+		fightTextContainer.getChildren().clear();
+		
+		PrintStream fightOutputStream = new PrintStream(new OutputStream() {
+			Label currentLabel;
+			
+			boolean ourFast = fast;
+			
+			String currentText = "";
+			
+			@Override
+			public void write(int b) {
+				if (b == '\n') {
+					if (currentLabel != null) {
+						final String text = currentText;
+						final Label finalLabel = currentLabel;
+						Platform.runLater(() -> {
+							finalLabel.setText(text);
+							fightTextContainer.getChildren().add(finalLabel);
+							fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+						});
+						
+						currentText = "";
+						
+						if (!ourFast) {
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
+								ourFast = true;
+							}
+						}
+					}
+					currentLabel = new Label();
+				} else {
+					currentText += new String(Character.toChars(b));
+				}
+			}
+		});
+		
+		userAnimal.addEnvironment(environment.get());
+		opponentAnimal.addEnvironment(environment.get());
+		
+		Task<Integer> task = new Task<>() {
+			@Override
+			protected Integer call() {
+				Optional<Animal> winner = contest.resolve(userAnimal, opponentAnimal, environment.get(), fightOutputStream);
+				
+				userAnimal.removeEnvironment(environment.get());
+				opponentAnimal.removeEnvironment(environment.get());
+				
+				if (winner.isEmpty()) {
+					fightOutputStream.println("The fight was a draw!");
+				} else {
+					if (winner.get() == userAnimal) {
+						fightOutputStream.println("You won!");
+					} else {
+						fightOutputStream.println("You lost...");
+					}
+				}
+				
+				fightTextScrollPane.setVvalue(Double.MAX_VALUE);
+				
+				System.out.println("Done");
+				fightRunning.set(false);
+				return 0;
+			}
+		};
+		
+		Thread executorThread = new Thread(task);
+		executorThread.setDaemon(true);
+		
+		currentFight = executorThread;
+		fightRunning.set(true);
+		executorThread.start();
 	}
 	
 	/**
@@ -318,16 +426,6 @@ public class AnimalMain extends Application {
 		Label label = new Label("Let's create an animal!!");
 		label.setFont(Font.font(24.0));
 		
-		//region Name Field
-		HBox nameBox = new HBox();
-		nameBox.alignmentProperty().set(Pos.CENTER_LEFT);
-		Label nameLabel = new Label("Enter the name of your animal: ");
-		TextField nameField = new TextField();
-		nameField.setPromptText("Name here...");
-		nameField.setText(defaults == null ? "" : defaults.name);
-		nameBox.getChildren().addAll(nameLabel, nameField);
-		//endregion
-		
 		//region Species Field
 		HBox speciesBox = new HBox();
 		speciesBox.alignmentProperty().set(Pos.CENTER_LEFT);
@@ -342,7 +440,6 @@ public class AnimalMain extends Application {
 		List<Trait> availableBaseTraits = List.of(
 				new Trait("Lion Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -353,7 +450,6 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Eagle Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
 						new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
@@ -365,7 +461,6 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Cheetah Body", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
-						new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
 						new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 						new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -402,11 +497,9 @@ public class AnimalMain extends Application {
 				}),
 				new Trait("Violent", new ReflectiveModifier[] {
 						new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
-						new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
 				}),
 				new Trait("Glass Cannon", new ReflectiveModifier[] {
 						new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
-						new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
 						new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
 				}),
 				new Trait("Long Legs", new ReflectiveModifier[] {
@@ -416,7 +509,7 @@ public class AnimalMain extends Application {
 		
 		HBox otherTraitsBox = new HBox();
 		otherTraitsBox.alignmentProperty().set(Pos.CENTER_LEFT);
-		Label otherTraitsLabel = new Label("Pick the optional traits you want: ");
+		Label otherTraitsLabel = new Label("Pick the optional traits you want: \n(Use CTRL to select multiple)");
 		ListView<String> otherTraitsListView = new ListView<>();
 		otherTraitsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		otherTraitsListView.getItems().addAll(otherTraits.stream().map(t -> t.name).toList());
@@ -431,16 +524,12 @@ public class AnimalMain extends Application {
 		
 		//endregion
 		
-		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular non-final variables in lambdas because of some reason. Java moment
+		AtomicReference<Animal> animal = new AtomicReference<>(); // Can't use regular non-final variables in lambdas because of some reason. Java moment 💀
 		
 		Scene scene = new Scene(layout, 600, 400);
 		
 		Button button = new Button("Create!");
 		button.setOnAction(e -> {
-			if (nameField.getText() == null || nameField.getText().length() == 0 || nameField.getText().length() > 64) {
-				new Alert(Alert.AlertType.ERROR, "Name must be between 1 and 64 characters!").showAndWait();
-				return;
-			}
 			if (speciesField.getText() == null || speciesField.getText().length() == 0 || speciesField.getText().length() > 64) {
 				new Alert(Alert.AlertType.ERROR, "Species must be between 1 and 64 characters!").showAndWait();
 				return;
@@ -450,7 +539,6 @@ public class AnimalMain extends Application {
 				return;
 			}
 			animal.set(new Animal());
-			animal.get().name = nameField.getText();
 			animal.get().species = speciesField.getText();
 			animal.get().addTrait(availableBaseTraits.stream().filter(t -> t.name.equals(baseTraitChoiceBox.getValue())).findFirst().orElseThrow());
 			for (Trait trait : otherTraitsListView.getSelectionModel().getSelectedItems().stream().map(s -> otherTraits.stream().filter(t -> t.name.equals(s)).findFirst().orElseThrow()).toList()) {
@@ -461,7 +549,7 @@ public class AnimalMain extends Application {
 			stage.close();
 		});
 		
-		layout.getChildren().addAll(label, nameBox, speciesBox, baseTraitBox, otherTraitsBox, button);
+		layout.getChildren().addAll(label, speciesBox, baseTraitBox, otherTraitsBox, button);
 		
 		
 		stage.setScene(scene);
@@ -486,7 +574,7 @@ public class AnimalMain extends Application {
 		lion.species = "Lion";
 		lion.addTrait(new Trait("Lion Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 100.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 50.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -497,7 +585,6 @@ public class AnimalMain extends Application {
 		}));
 		lion.addTrait(new Trait("Violent", new ReflectiveModifier[] {
 				new ReflectiveModifier("AttackModule.damage", 1.25, true, false, false),
-				new ReflectiveModifier("BaseModule.damage", 1.25, true, false, false),
 		}));
 		animals.add(lion);
 		
@@ -506,7 +593,7 @@ public class AnimalMain extends Application {
 		eagle.species = "Eagle";
 		eagle.addTrait(new Trait("Eagle Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 50.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 100.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 1.0, false, false, true),
 				new ReflectiveModifier("AirMovementModule.speed", 40.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 40.0, false, false, true),
@@ -521,7 +608,6 @@ public class AnimalMain extends Application {
 		}));
 		eagle.addTrait(new Trait("Glass Cannon", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 0.75, true, false, false),
-				new ReflectiveModifier("BaseModule.damage", 1.5, true, false, false),
 				new ReflectiveModifier("AttackModule.damage", 1.5, true, false, false),
 		}));
 		animals.add(eagle);
@@ -530,7 +616,7 @@ public class AnimalMain extends Application {
 		cheetah.species = "Cheetah";
 		cheetah.addTrait(new Trait("Cheetah Body", new ReflectiveModifier[] {
 				new ReflectiveModifier("BaseModule.health", 75.0, false, false, true),
-				new ReflectiveModifier("BaseModule.damage", 75.0, false, false, true),
+				new ReflectiveModifier("DefenseModule.damageResistance", 1.0, true, false, true),
 				new ReflectiveModifier("LandMovementModule.speed", 30.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damage", 20.0, false, false, true),
 				new ReflectiveModifier("ClawAttackModule.damageRandomRange", 5.0, false, false, true),
@@ -546,5 +632,13 @@ public class AnimalMain extends Application {
 		
 		
 		return animals;
+	}
+	
+	static void showErrorDialogue(Exception e) {
+		StringWriter writer = new StringWriter();
+		PrintWriter out = new PrintWriter(writer);
+		e.printStackTrace(out);
+		String output = writer.toString();
+		new Alert(Alert.AlertType.ERROR, "An error occurred!\n" + output).showAndWait();
 	}
 }

@@ -16,7 +16,6 @@ import java.util.function.Function;
 @JsonSerialize(using = AnimalSerializer.class)
 @JsonDeserialize(using = AnimalDeserializer.class)
 public class Animal {
-	public String name;
 	public String species;
 	
 	List<AnimalModule> modules = new ArrayList<>();
@@ -86,7 +85,7 @@ public class Animal {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append(String.format("Animal of species %s, named %s.\n", species, name));
+		b.append(String.format("Animal of species %s.\n", species));
 		b.append("Stats:\n");
 		for (AnimalModule m : modules) {
 			b.append(m.getClass().getSimpleName());
@@ -101,7 +100,6 @@ public class Animal {
 						double value = field.getDouble(m);
 						if (c.multiplier()) {
 							if (other.containsKey(c.name())) { // Use format: name: value xMultiplier% = finalValue
-								// TODO: change this to just display the whole number later
 								b.append(String.format("  %s: %.2f x%.0f%% = %.2f\n", name, other.get(name), value * 100, other.get(name) * value));
 								other.remove(name);
 							} else {
