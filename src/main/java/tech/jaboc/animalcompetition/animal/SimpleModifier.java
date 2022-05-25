@@ -3,6 +3,9 @@ package tech.jaboc.animalcompetition.animal;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+/**
+ * The older, non-reflective version of modifier. It has since been deprecated and is not supported by the animal save-load system anymore.
+ */
 @Deprecated
 public class SimpleModifier extends Modifier {
 	BiConsumer<Animal, Double> setFunc;

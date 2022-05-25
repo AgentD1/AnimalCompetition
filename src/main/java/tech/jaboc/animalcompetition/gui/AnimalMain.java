@@ -38,7 +38,7 @@ public class AnimalMain extends Application {
 	 */
 	@Override
 	public void start(Stage stage) throws Exception {
-		new LandMovementModule(); // initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
+		new LandMovementModule(); // Initialize all modules that aren't explicitly referenced so that they get loaded. Java moment
 		new AirMovementModule();
 		new BaseModule();
 		new BeakAttackModule();
