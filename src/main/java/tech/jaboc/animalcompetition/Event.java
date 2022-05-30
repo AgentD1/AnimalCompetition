@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @param <T> The event arguments
  */
-public class Event<T> {
+public class Event<T> { // This didn't end up getting used but I'll keep it here because I will totally use it in future projects.
 	List<IEventHandler<T>> eventHandlers = new ArrayList<>();
 	
 	/**

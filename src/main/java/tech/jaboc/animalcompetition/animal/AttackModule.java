@@ -18,7 +18,7 @@ public abstract class AttackModule extends AnimalModule {
 	public double damageRandomRange;
 	
 	public boolean canHitAnimal(Animal animal) {
-		return true; // TODO: add attack range when animals have locations later
+		return true;
 	}
 	
 	public AttackResult attackAnimal(Animal animal) {
