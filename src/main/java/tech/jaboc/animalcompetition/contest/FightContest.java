@@ -23,9 +23,6 @@ public class FightContest extends Contest {
 		int turnNumber = 1;
 		
 		while (animal1.getModuleOfType(BaseModule.class).currentHealth > 0 && animal2.getModuleOfType(BaseModule.class).currentHealth > 0) {
-			if (animal1Turn) {
-				output.printf("\n--- Turn %d ---\n\n", turnNumber);
-			}
 			
 			Animal aggressor = animal1Turn ? animal1 : animal2;
 			Animal victim = animal1Turn ? animal2 : animal1;
@@ -35,6 +32,12 @@ public class FightContest extends Contest {
 			if (aggressorName.equals(victim.species)) aggressorName += (aggressor == animal1 ? " 1" : " 2");
 			String victimName = victim.species;
 			if (victimName.equals(aggressor.species)) victimName += (victim == animal1 ? " 1" : " 2");
+			
+			if (animal1Turn) {
+				output.printf("\n--- Turn %d ---\n\n%s has %.2f health\n%s has %.2f health\n\n", turnNumber,
+						aggressorName, aggressor.getModuleOfType(BaseModule.class).currentHealth,
+						victimName, victim.getModuleOfType(BaseModule.class).currentHealth);
+			}
 			
 			List<AttackModule> attacks = aggressor.getModulesOfType(AttackModule.class);
 			attacks = attacks.stream().filter(a -> a.canHitAnimal(victim)).toList();
@@ -51,9 +54,9 @@ public class FightContest extends Contest {
 			AttackModule.AttackResult attackResult = randomAttack.attackAnimal(victim);
 			
 			if (attackResult.hit()) {
-				output.printf(aggressorName + " hit for %s damage.\n", attackResult.damage());
+				output.printf(aggressorName + " hit for %.2f damage.\n", attackResult.damage());
 			} else {
-				output.printf(victimName + " dodged the attack!\n");
+				output.print(victimName + " dodged the attack!\n");
 			}
 			
 			animal1Turn = !animal1Turn;
